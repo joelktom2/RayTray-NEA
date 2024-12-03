@@ -1,6 +1,5 @@
 from Maths import Vector
-from scene import Scene
-from objects import camera
+from scene import Scene,camera
 from objects import Sphere
 from image import colour
 from engine import engine
@@ -17,15 +16,11 @@ width = 300
 height = 200
 myobj = Sphere(Vector(0, 0, 5), 0.5, colour(1,0,0))
 mycam = camera(Vector(0, 0, -1))
-scene = Scene([myobj],mycam,width,height)
-user_scene = Scene([myobj],mycam,width,height)  
+objects = []
+objects.append(myobj)
+objects.append(Sphere(Vector(10, 10, 15), 0.5, colour(0,1,0)))
 
-def main(user_scene):
-
-    Engine = engine()
-    image = Engine.render(user_scene)
-    with open("good.ppm", "w") as img_file:
-        image.write_ppm(img_file)
+user_scene = Scene(objects,mycam,width,height)  
 
 main(user_scene)
 

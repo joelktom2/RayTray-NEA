@@ -1,10 +1,10 @@
 from image import colour
 from Maths import Vector
-from objects import Sphere,camera
+from objects import Sphere
 from engine import engine
 import flet as ft
 from tkinter import Tk, colorchooser
-from scene import Scene
+from scene import Scene,camera
 from PIL import Image
 
 

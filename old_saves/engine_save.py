@@ -53,9 +53,6 @@ class engine:
     def color_at(self,scene,ray,nearest,i_p):
         return nearest.colour
     
-    def lamb(base,light,normal):
-        return base * light.dp(normal)
-    
     def ray_trace(self,ray,scene):
         fcolour = colour(0,0,0) #defualt colour : plain red
         

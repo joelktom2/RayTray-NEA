@@ -6,9 +6,6 @@ class engine:
     
 
     def render(self,scene):
-        for x in scene.objects:
-            print(x)
-
         width = scene.width
         height = scene.height
         ar = width / height
@@ -39,29 +36,23 @@ class engine:
             (scene.camera).position = cam
             i_p = x.intersects(ray)
             if i_p == None:
-                continue
+                return None,i_p
             nd = (cam - i_p).mag
             if d == 0:
-                d = nd
+                nd = d
                 nearest = x
             elif nd < d:
                 d = nd
                 nearest = x
-
         return nearest,i_p
     
     def color_at(self,scene,ray,nearest,i_p):
         return nearest.colour
     
-    def lamb(base,light,normal):
-        return base * light.dp(normal)
-    
     def ray_trace(self,ray,scene):
         fcolour = colour(0,0,0) #defualt colour : plain red
         
         object_hit,intersect_point = self.nearest(scene,ray)
-        if object_hit != None:
-            print((object_hit.colour))
         
        
         

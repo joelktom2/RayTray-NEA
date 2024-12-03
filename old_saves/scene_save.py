@@ -6,6 +6,3 @@ class Scene():
         self.height = height
     
         
-class camera():
-    def __init__(self,position):
-        self.position = position

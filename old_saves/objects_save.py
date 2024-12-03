@@ -1,20 +1,17 @@
 import math
-from material import material
+from Maths import Ray
 
 class camera():
     def __init__(self,position):
         self.position = position
 
+
+
 class Sphere():
-    def __init__(self, center, radius,colour=(0,0,0),mat = [0.5,0.0,0.0]):
+    def __init__(self, center, radius,colour=(0,0,0)):
         self.center = center
         self.radius = radius
         self.colour = colour
-        self.material = material(colour)
-        self.material.shininess = mat[0]
-        self.material.reflectivity = mat[1]
-        self.material.transparency = mat[2]
-
 
     def __str__(self):
         return f"Center: {self.center}, Radius: {self.radius}, Colour: {self.colour}"
@@ -51,3 +48,9 @@ class Plane():
     
 
 
+class Material:
+    def __init__(self, color, shininess=0.5, reflectivity=0.0, transparency=0.0):
+        self.color = color  # Color of the material
+        self.shininess = shininess  # Specular shininess
+        self.reflectivity = reflectivity  # Reflectivity of the surface
+        self.transparency = transparency  # Transparency level   
