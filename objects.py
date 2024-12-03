@@ -19,6 +19,10 @@ class Sphere():
     def __str__(self):
         return f"Center: {self.center}, Radius: {self.radius}, Colour: {self.colour}"
     
+    def normal(self, point):
+        return (point - self.center).norm()
+    
+    
     def intersects(self, ray):
         L = ray.origin - self.center
         a = ray.direction.dp(ray.direction)

@@ -7,7 +7,8 @@ class colour(Vector):
         g = int(int(hex[2:4], 16)/255)
         b = int(int(hex[4:6], 16)/255)
         return colour(r, g, b)
-
+    
+    
     
 
 
@@ -28,7 +29,7 @@ class Image:
         file.write("255\n")
         for row in self.pixels:
             for pixel in row:
-                file.write(f"{pixel.x*255} {pixel.y*255} {pixel.z*255}\n")
+                file.write(f"{int(pixel.x*255)} {int(pixel.y*255)} {int(pixel.z*255)}\n")
 
 
 

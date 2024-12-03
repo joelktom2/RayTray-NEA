@@ -49,25 +49,15 @@ def main(page):
                 self.height = 50
                 self.weight = ft.FontWeight.BOLD
 
-       
+        # List to hold added objects
         added_objects = ft.Column(spacing=5)
-        added_lights = ft.Column(spacing=5)
+
         
         #scene data initialization
         scene_objects = []
-        lights = []
-        
-        def add_light(e):
-            if light_pos.value:
-                added_lights.controls.append(
-                    ft.Text(f"Position: {light_pos.value}")
-                )    
-                position_parts = light_pos.value.split(",")
-                x, y, z = map(int, position_parts)
-                mylight = light(Vector(x, y, z),colour(1,1,1))
-                lights.append(mylight)
-                page.update()
 
+        
+        
 
         def add_object(e):
             if object_type.value and object_position.value and selected_color and object_radius.value:
@@ -109,11 +99,16 @@ def main(page):
         
         def render(e):
             
+            light_parts = light_pos.value.split(",")
+            x, y, z = map(int, light_parts)
+            scene_light = light(Vector(x, y, z))
             cam_parts = cam_pos.value.split(",")
             x, y, z = map(int, cam_parts)
             scene_camera = camera(Vector(x, y, z))
             scene_width = int(width_input.value)
             scene_height = int(height_input.value)
+            lights = [scene_light]
+
             user_scene = Scene(scene_objects,scene_camera,scene_width,scene_height,lights)  
             Engine = engine()
             image = Engine.render(user_scene)
@@ -148,18 +143,13 @@ def main(page):
         object_radius = ft.TextField(label="Object Radius", hint_text="e.g., 0.5", width=300)
         color_picker_button = MyButton(text="Pick Color", on_click=pick_color)
         add_object_button = MyButton(text="Add Object", on_click=add_object)
-        add_light_button = MyButton(text="Add Light", on_click=add_light)
+
         # Add the updated render UI
         page.add(
             img,
             ft.Column(
                 [
-                    ft.Row(
-                        [light_pos,add_light_button], alignment=ft.MainAxisAlignment.CENTER
-                        
-                    ),
-                    ft.Text("Added Lights:"),
-                    added_lights,
+                    ft.Row([light_pos], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Row([cam_pos], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Row([width_input, height_input], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Row([current_width, current_height], alignment=ft.MainAxisAlignment.CENTER),

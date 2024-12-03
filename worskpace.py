@@ -1,8 +1,10 @@
-import math
+from Maths import Vector
 
-def circle_area(radius):
-    return math.pi * radius ** 2
+class Aryan(Vector):
 
-def rectangle_area(width, height):
-    return width * height
+    def chill(self):
+        print("chill")
 
+
+a1 = Aryan(1, 2, 3)
+a1.chill()
