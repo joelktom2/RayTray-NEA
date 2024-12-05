@@ -7,7 +7,7 @@ from tkinter import Tk, colorchooser
 from scene import Scene,camera
 from PIL import Image
 from light import light
-
+from loginsys import hash_password,verify_password,create_user,login_user
 
 
 
@@ -192,14 +192,22 @@ def main(page):
     username = ft.TextField(label="Username", width=300)
     password = ft.TextField(label="Password", password=True, width=300)
     login_button = ft.ElevatedButton(text="Login", on_click=switch_to_main_ui)
-
+    register_button = ft.ElevatedButton(text="Register", on_click=switch_to_main_ui)
     page.add(
         ft.Column(
             [
                 ft.Text("Welcome to RayTray", size=20, weight=ft.FontWeight.BOLD),
                 username,
                 password,
-                login_button,
+                ft.Row(
+                    [
+                        login_button,
+                        register_button,
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    spacing=10,
+                ),
+
             ],
             alignment=ft.MainAxisAlignment.CENTER,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
