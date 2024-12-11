@@ -23,14 +23,6 @@ def hash_password(password):
 def verify_password(plain_password, hashed_password):
     return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password)
 
-#def my_verify_password(plain_password, hashed_password):
-    #if hash_password(plain_password) == hashed_password:
-        #return True
-    #else:
-        #return False
-#insecure
-
-
 def create_user(username, password):
     connection = sqlite3.connect('data.db')
     cursor = connection.cursor()

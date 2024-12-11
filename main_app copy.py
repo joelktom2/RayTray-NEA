@@ -142,7 +142,6 @@ def main(page):
         #scene data initialization
         scene_objects = []
         lights = []
-        scene_camera = None
         
         def add_light(e):    # adds a light source to the scene 
             
@@ -172,13 +171,6 @@ def main(page):
             lights.pop(lnum)
             added_lights.controls.pop(lnum)
             page.update()
-        
-        
-        def add_cam(e): # adds a camera to the scene
-            cam_parts = cam_pos.value.split(",")
-            x, y, z = map(int, cam_parts)
-            scene_camera = camera(Vector(x, y, z))
-            
         
         def add_object(e):   #adds an object to the scene
             if object_type.value and object_position.value and selected_color and object_radius.value:
@@ -233,7 +225,9 @@ def main(page):
         
         def render(e):   #renders the scene
             
-            print(scene_camera)
+            cam_parts = cam_pos.value.split(",")
+            x, y, z = map(int, cam_parts)
+            scene_camera = camera(Vector(x, y, z))
             scene_width = int(width_input.value)
             scene_height = int(height_input.value)
             user_scene = Scene(scene_objects,scene_camera,scene_width,scene_height,lights)  
@@ -247,7 +241,7 @@ def main(page):
             img.visible = True
             img.update()
 
-        
+                
         
         selected_color = None  # Holds the selected color
 
@@ -267,7 +261,6 @@ def main(page):
         object_position = ft.TextField(label="Object Position", hint_text="e.g., (x, y, z)", width=300)
         object_radius = ft.TextField(label="Object Radius", hint_text="e.g., 0.5", width=300)
         color_picker_button = MyButton(text="Pick Color", on_click=pick_color)
-        add_cam_button = MyButton(text="Add Camera", on_click=add_cam)
         add_object_button = MyButton(text="Add Object", on_click=add_object)
         add_light_button = MyButton(text="Add Light", on_click=add_light)
         light_error_message = ft.Text(
@@ -302,9 +295,7 @@ def main(page):
                     ft.Text("Added Lights:"),
                     added_lights,
                     
-                    ft.Row(
-                        [cam_pos,add_cam_button], alignment=ft.MainAxisAlignment.CENTER
-                    ),
+                    ft.Row([cam_pos], alignment=ft.MainAxisAlignment.CENTER),
                     cam_error_message,
                     ft.Row([width_input, height_input], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Row([current_width, current_height], alignment=ft.MainAxisAlignment.CENTER),

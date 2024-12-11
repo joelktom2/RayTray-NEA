@@ -8,13 +8,13 @@ class light():
     
     def intensity_at_point(self,point):
         d = (point - self.position).mag()
-        return self.intesity/((0.01*(d**2))+(0.1*d)+1)
+        return self.intesity/((0.01*(d**2))+(0.1*d)+1)   # returns the intensity of the light at a point in the scene
     
     def set_color(self, color):
-        self.color = color
+        self.color = color    # sets the colour of the light
 
     def set_brightness(self, brightness):
-        self.brightness = brightness
+        self.brightness = brightness   # sets the brightness of the light
 
     def __str__(self):
         print(f" {self.on}, {self.color}, {self.brightness}") 

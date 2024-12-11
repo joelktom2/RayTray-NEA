@@ -6,12 +6,11 @@ class engine:
     
 
     def render(self,scene):
-        for x in scene.objects:
-            print(x)
-
+    
         width = scene.width
-        height = scene.height
-        ar = width / height
+        height = scene.height        
+        
+        ar = width / height     
         y_max = 1 /  ar
         y_min = -y_max
         x_max = 1.0
@@ -19,9 +18,10 @@ class engine:
         xstep = (x_max - x_min) / (width - 1)
         ystep = (y_max - y_min) / (height - 1)
 
+        #lines 13 -19 are used to avoid image distortion by keeping the aspect ratio of the image constant
         camera = scene.camera
         pixels = Image(width, height)
-        
+        #loop through each pixel in the image and traces a ray through it
         for j in range(height):
             y = y_min + j * ystep  #y coord
             for i in range(width):
@@ -36,7 +36,7 @@ class engine:
         d = 0
         nearest = None
         nearesti_p = None
-        for x in scene.objects:
+        for x in scene.objects:   #loops through all the objects in the scene and finds the nearest object to the camera
             (scene.camera).position = cam
             i_p = x.intersects(ray)
             if i_p == None:
@@ -51,17 +51,17 @@ class engine:
                 nearest = x
                 nearesti_p = i_p
 
-        return nearest,nearesti_p
+        return nearest,nearesti_p  #returns the object that the ray intersects with and the point of intersection
     
     def color_at(self,scene,nearest,i_p):
         base_colour = nearest.colour
         normal = nearest.normal(i_p)
         light = scene.lights[0]
         light_dir = (light.position - i_p).norm()
-        return engine.lamb(base_colour,light,normal,i_p,light_dir)
+        return engine.lamb(base_colour,light,normal,i_p,light_dir) #returns the colour of the object at the point of intersection
     
     def lamb(base_colour,light,normal,i_p,light_dir):
-        return base_colour * light.intensity_at_point(i_p) * max(0,(light_dir).dp(normal))
+        return base_colour * light.intensity_at_point(i_p) * max(0,(light_dir).dp(normal)) #returns the lambertian shading of the object
     
 
     
@@ -78,7 +78,7 @@ class engine:
         if intersect_point == None:
             return fcolour
                 
-        fcolour = self.color_at(scene,object_hit,intersect_point)
+        fcolour = self.color_at(scene,object_hit,intersect_point) # returns the colour of the object at the point of intersection
         print(fcolour)
         return fcolour
         
