@@ -12,10 +12,12 @@ import re
 
 
 def main(page):
-    page.title = "Renderer"
+    page.title = "RayTray"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-
+    
+    global User_Status  
+    User_Status = None
     
     def username_sanitate(value):
         if re.fullmatch(r'[A-Za-z0-9#_]+', value):
@@ -30,7 +32,10 @@ def main(page):
             return True
         return False     #checks if the password is valid
 
-    
+    def guest(e):
+        global User_Status
+        User_Status = False
+        switch_to_main_ui(e)
 
     def register(e):
         usern = username.value
@@ -50,6 +55,8 @@ def main(page):
         
         page.update()
         create_user(usern,pwd)
+        global User_Status
+        User_Status = True
         switch_to_main_ui(e)
     
     def login(e):
@@ -80,6 +87,8 @@ def main(page):
             return
         
         page.update()
+        global User_Status
+        User_Status = True
         switch_to_main_ui(e)   #switches to the main UI when the user logs in successfully
     
     
@@ -98,6 +107,20 @@ def main(page):
 
 
         # UI components for the render page
+        
+    
+        class Fancy_Button(ft.CupertinoFilledButton):
+            def __init__(self, text, on_click):
+                super().__init__()
+                self.bgcolor = ft.colors.LIME_100
+                self.color = ft.colors.GREEN_800
+                self.text = text
+                self.on_click = on_click
+                self.visible = True        
+                
+        
+        
+        
         class MyButton(ft.ElevatedButton):
             def __init__(self, text, on_click):
                 super().__init__()
@@ -135,14 +158,23 @@ def main(page):
                 return True
             return False
         
-    
+        def validradius(value):
+            if re.fullmatch(r'\d+(\.\d+)?', value):
+                return True
+            return False
+        
+        def validlength(value):
+            if re.fullmatch(r'\d+', value):
+                return True
+            return False
+        
         added_objects = ft.Column(spacing=5)
         added_lights = ft.Column(spacing=5)
-        
+        added_cam = ft.Column(spacing=5)
         #scene data initialization
         scene_objects = []
         lights = []
-        scene_camera = None
+        
         
         def add_light(e):    # adds a light source to the scene 
             
@@ -175,13 +207,53 @@ def main(page):
         
         
         def add_cam(e): # adds a camera to the scene
-            cam_parts = cam_pos.value.split(",")
-            x, y, z = map(int, cam_parts)
-            scene_camera = camera(Vector(x, y, z))
             
+            if validcoord(cam_pos.value):
+                cam_error_message.visible = False
+                cam_parts = cam_pos.value.split(",")
+                x, y, z = map(int, cam_parts)
+                global scene_camera
+                scene_camera = camera(Vector(x, y, z))
+                added_cam.controls.append(
+                    ft.Row(
+                        [(ft.Text(f"Position: {cam_pos.value}")),Remove_ButtonLite(text="Remove", on_click=lambda e: remove_cam(e, scene_camera))] , alignment=ft.MainAxisAlignment.CENTER
+                        
+                    ),
+                )
+                page.update()
+            else:
+                cam_error_message.value = "Please enter a camera position"
+                cam_error_message.visible = True
+                page.update()
+
+        def remove_cam(e,cam):   #removes camera from the scene
+            added_cam.controls.pop(0)
+            page.update()    
         
         def add_object(e):   #adds an object to the scene
-            if object_type.value and object_position.value and selected_color and object_radius.value:
+            
+            if validcoord(object_position.value) == False:
+                obj_error_message.value = "Please enter a valid position"
+                obj_error_message.visible = True
+                page.update()
+            elif object_type.value == None:
+                obj_error_message.value = "Please select an object type"
+                obj_error_message.visible = True
+                page.update()
+
+            elif validradius(object_radius.value) == False:
+                obj_error_message.value = "Please enter a valid radius"
+                obj_error_message.visible = True
+                page.update()
+            
+            elif selected_color == None:
+                obj_error_message.value = "Please select a color"
+                obj_error_message.visible = True
+                page.update()
+            #object_type.value and object_position.value and selected_color and object_radius.value:
+            else: 
+                obj_error_message.visible = False
+                
                 position_parts = object_position.value.split(",")
                 x, y, z = map(int, position_parts)
                 myobj1 = Sphere(Vector(x, y, z), float(object_radius.value), colour.hex_to_rgb(selected_color))
@@ -233,21 +305,46 @@ def main(page):
         
         def render(e):   #renders the scene
             
-            print(scene_camera)
-            scene_width = int(width_input.value)
-            scene_height = int(height_input.value)
-            user_scene = Scene(scene_objects,scene_camera,scene_width,scene_height,lights)  
-            Engine = engine()
-            image = Engine.render(user_scene)
-            with open("image.ppm", "w") as img_file:
-                image.write_ppm(img_file)
-                
-            convert_ppm_to_png("image.ppm", "image.png")
-            img.src = "image.png"
-            img.visible = True
-            img.update()
+            if validlength(width_input.value) == False or validlength(height_input.value) == False:
+                scene_error_message.value = "Please enter valid dimensions of the scene "
+                scene_error_message.visible = True
+                page.update()
+                return
+            else:
+                scene_error_message.visible = False
+                scene_width = int(width_input.value)
+                scene_height = int(height_input.value)
+                user_scene = Scene(scene_objects,scene_camera,scene_width,scene_height,lights)  
+                Engine = engine()
+                image = Engine.render(user_scene)
+                with open("image.ppm", "w") as img_file:
+                    image.write_ppm(img_file)
+                    
+                convert_ppm_to_png("image.ppm", "image.png")
+                img.src = "image.png"
+                img.visible = True
+                img.update()
 
         
+        def sign_out(e):
+            global User_Status
+            User_Status = None
+            page.controls.clear()
+            username.value = ""
+            password.value = ""
+            loginpage()
+            page.update()
+        
+        def my_renders(e):
+            page.controls.clear()
+            page.add(
+                ft.Text(
+                    value="COMING SOON !!!!",
+                    font_family="Verdana",
+                ),
+                Sign_out_Button,
+            )
+            page.update()
         
         selected_color = None  # Holds the selected color
 
@@ -285,11 +382,21 @@ def main(page):
         color= ft.colors.RED,
         visible=False,
         )
+        scene_error_message = ft.Text(
+        "",
+        color= ft.colors.RED,
+        visible=False,
+        )
 
-    
+        Sign_out_Button= Fancy_Button(text="Sign Out", on_click=sign_out,)
+        My_Renders_Button= Fancy_Button(text="My Renders", on_click=my_renders,)
         
+        if User_Status == True:
+            My_Renders_Button.visible = True
+        else:
+            My_Renders_Button.visible = False
         
-        
+
         page.add(
             img,
             ft.Column(
@@ -306,6 +413,8 @@ def main(page):
                         [cam_pos,add_cam_button], alignment=ft.MainAxisAlignment.CENTER
                     ),
                     cam_error_message,
+                    ft.Text("Added Lights:"),
+                    added_cam,
                     ft.Row([width_input, height_input], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Row([current_width, current_height], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Text("Objects", size=16, weight=ft.FontWeight.BOLD),
@@ -320,16 +429,48 @@ def main(page):
                         alignment=ft.MainAxisAlignment.CENTER,
                         spacing=10,
                     ),
+                    obj_error_message,
                     ft.Text("Added Objects:"),
                     added_objects,  # Display added objects
                     ft.Row([R_Button(text="Render", on_click=render)], alignment=ft.MainAxisAlignment.CENTER),
+                    scene_error_message,
                     
+                    
+                    
+                    
+                    
+                    ft.Row(
+                        controls=[
+                            
+                            ft.Container(
+                                Sign_out_Button,
+                                                
+                                alignment=ft.alignment.Alignment(-1, 1),
+                                margin=ft.margin.all(80),
+                                expand=True,
+                            ),
+                            ft.Container(
+                                My_Renders_Button,
+                                alignment=ft.alignment.Alignment(1, 1),
+                                margin=ft.margin.all(80),
+                                expand=True,
+                            ),
+
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,  # Adjust alignment as needed
+                    ),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,  # Center vertically
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,  # Center horizontally
+                scroll=ft.ScrollMode.ALWAYS,
+                expand=True,  # Add this to allow the column to expand
+                height=page.height,  # Add this to make the column take full height
+                spacing=10,
             )
         )
+        page.scroll = ft.ScrollMode.ALWAYS
         page.update()
+        
         
         
 
@@ -345,28 +486,35 @@ def main(page):
     
     login_button = ft.ElevatedButton(text="Login", on_click=login)
     register_button = ft.ElevatedButton(text="Register", on_click=register)
-    page.add(
-        ft.Column(
-            [
-                ft.Text("Welcome to RayTray", size=20, weight=ft.FontWeight.BOLD),
-                username,
-                password,
-                ft.Row(
-                    [
-                        login_button,
-                        register_button,
+    guest_button = ft.ElevatedButton(text="Continue as Guest", on_click=guest)
+    
+    def loginpage():
+        page.add(
+            ft.Column(
+                [
+                    ft.Text("Welcome to RayTray", size=20, weight=ft.FontWeight.BOLD),
+                    username,
+                    password,
+                    ft.Row(
+                        [
+                            login_button,
+                            register_button,
 
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    spacing=10,
-                ),
-                error_message,
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        spacing=10,
+                    ),
+                    error_message,
+                    guest_button,
 
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            )
         )
-    )
+        page.vertical_alignment = ft.MainAxisAlignment.CENTER
+        page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
+    loginpage()
 
 ft.app(main)

@@ -1,8 +1,14 @@
-import re
-def validlight(value):
-    if re.fullmatch(r'-?\d+,-?\d+,-?\d+', value):
-        return True
-    return False
+import flet as ft
 
+def main(page: ft.Page):
+    page.add(
+        ft.CupertinoFilledButton(
+            content=ft.Text("CupertinoFilled"),
+            opacity_on_click=0.3,
+            on_click=lambda e: print("CupertinoFilledButton clicked!"),
+            
+           
+        ),
+    )
 
-print(validlight('a,b,c')) # True
+ft.app(main)
