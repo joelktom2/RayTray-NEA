@@ -1,14 +1,8 @@
-import flet as ft
+import re
+def validate_name(value):   #validates the name of the render
+            if re.fullmatch(r'[A-Za-z0-9#_]+', value):
+                return True
+            return False
 
-def main(page: ft.Page):
-    page.add(
-        ft.CupertinoFilledButton(
-            content=ft.Text("CupertinoFilled"),
-            opacity_on_click=0.3,
-            on_click=lambda e: print("CupertinoFilledButton clicked!"),
-            
-           
-        ),
-    )
 
-ft.app(main)
+print(validate_name("Sample_Render")) #True

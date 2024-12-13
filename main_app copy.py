@@ -15,6 +15,7 @@ def main(page):
     page.title = "RayTray"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+    
     global User_Status  
     User_Status = None
     
@@ -34,6 +35,7 @@ def main(page):
     def guest(e):
         global User_Status
         User_Status = False
+        error_message.visible = False
         switch_to_main_ui(e)
 
     def register(e):
@@ -303,7 +305,11 @@ def main(page):
                 image.save(png_path, "PNG")
         
         def render(e):   #renders the scene
-            
+            img.visible = False
+            img.update()
+            img.src = None
+            img.update()
+
             if validlength(width_input.value) == False or validlength(height_input.value) == False:
                 scene_error_message.value = "Please enter valid dimensions of the scene "
                 scene_error_message.visible = True
@@ -314,6 +320,8 @@ def main(page):
                 scene_width = int(width_input.value)
                 scene_height = int(height_input.value)
                 user_scene = Scene(scene_objects,scene_camera,scene_width,scene_height,lights)  
+                
+                
                 Engine = engine()
                 image = Engine.render(user_scene)
                 with open("image.ppm", "w") as img_file:
@@ -323,21 +331,40 @@ def main(page):
                 img.src = "image.png"
                 img.visible = True
                 img.update()
+                
+        
+        def test_render(e):   #renders a test image
+            Engine = engine()
+            test_objs = [Sphere(Vector(0, 0, 5), 0.5, colour(1, 0, 0))]
+            test_cam = camera(Vector(0, 0, -1))
+            test_lights = [light(Vector(0, 0, 0), colour(1, 1, 1))]
+            test_scene = Scene(test_objs, test_cam, 300, 200, test_lights)
+            test_image = Engine.render(test_scene)
+            with open("test_image.ppm", "w") as img_file:
+                test_image.write_ppm(img_file)
+            convert_ppm_to_png("test_image.ppm", "test_image.png")
+            img.src = "test_image.png"
+            img.visible = True
+            img.update()
 
         
         def sign_out(e):
             global User_Status
             User_Status = None
-            
+            page.controls.clear()
+            username.value = ""
+            password.value = ""
+            loginpage()
             page.update()
         
         def my_renders(e):
             page.controls.clear()
             page.add(
                 ft.Text(
-                    value="This text is rendered",
+                    value="COMING SOON !!!!",
                     font_family="Verdana",
-                )
+                ),
+                Sign_out_Button,
             )
             page.update()
         
@@ -429,12 +456,30 @@ def main(page):
                     added_objects,  # Display added objects
                     ft.Row([R_Button(text="Render", on_click=render)], alignment=ft.MainAxisAlignment.CENTER),
                     scene_error_message,
+                    ft.Row([R_Button(text="Test Render", on_click=test_render)], alignment=ft.MainAxisAlignment.CENTER),
                     
-                    ft.Container(
-                        My_Renders_Button,
-                        alignment=ft.alignment.Alignment(1, 1),  
-                        margin=ft.margin.all(80), 
-                        expand=True, 
+                    
+                    
+                    
+                    ft.Row(
+                        controls=[
+                            
+                            ft.Container(
+                                Sign_out_Button,
+                                                
+                                alignment=ft.alignment.Alignment(-1, 1),
+                                margin=ft.margin.all(80),
+                                expand=True,
+                            ),
+                            ft.Container(
+                                My_Renders_Button,
+                                alignment=ft.alignment.Alignment(1, 1),
+                                margin=ft.margin.all(80),
+                                expand=True,
+                            ),
+
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,  # Adjust alignment as needed
                     ),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,  # Center vertically
@@ -465,29 +510,33 @@ def main(page):
     register_button = ft.ElevatedButton(text="Register", on_click=register)
     guest_button = ft.ElevatedButton(text="Continue as Guest", on_click=guest)
     
-    page.add(
-        ft.Column(
-            [
-                ft.Text("Welcome to RayTray", size=20, weight=ft.FontWeight.BOLD),
-                username,
-                password,
-                ft.Row(
-                    [
-                        login_button,
-                        register_button,
+    def loginpage():
+        page.add(
+            ft.Column(
+                [
+                    ft.Text("Welcome to RayTray", size=20, weight=ft.FontWeight.BOLD),
+                    username,
+                    password,
+                    ft.Row(
+                        [
+                            login_button,
+                            register_button,
 
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    spacing=10,
-                ),
-                error_message,
-                guest_button,
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        spacing=10,
+                    ),
+                    error_message,
+                    guest_button,
 
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            )
         )
-    )
+        page.vertical_alignment = ft.MainAxisAlignment.CENTER
+        page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
+    loginpage()
 
 ft.app(main)

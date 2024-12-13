@@ -17,4 +17,4 @@ class light():
         self.brightness = brightness   # sets the brightness of the light
 
     def __str__(self):
-        print(f" {self.on}, {self.color}, {self.brightness}") 
+        return f" colour : {self.colour},brightness : {self.intesity},position : {self.position}"
