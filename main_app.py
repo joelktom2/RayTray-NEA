@@ -9,6 +9,7 @@ from PIL import Image
 from light import light
 from loginsys import hash_password,verify_password,create_user,login_user
 import re
+from time import sleep
 
 
 def main(page):
@@ -317,6 +318,7 @@ def main(page):
             global scene_name
             if scene_name == None:
                 scene_name = "image.ppm"
+                scene_name_png = "image.png"
             else:
                 scene_name_png = scene_name + ".png"
                 scene_name = scene_name + ".ppm"
@@ -328,23 +330,37 @@ def main(page):
                 return
             else:
                 scene_error_message.visible = False
+                pb.visible = True
+                pb.value = 0
                 scene_width = int(width_input.value)
                 scene_height = int(height_input.value)
                 user_scene = Scene(scene_objects,scene_camera,scene_width,scene_height,lights)  
-                
                 
                 Engine = engine()
                 image = Engine.render(user_scene)
                 with open(scene_name, "w") as img_file:
                     image.write_ppm(img_file)
-                
+
                 convert_ppm_to_png(scene_name, scene_name_png)
                 img.src = scene_name_png
-                img.visible = True
+                
+                for i in range(0, 101):    #loading a progress bar not accurate of the rendering speed but for decoration
+                    pb.value = i * 0.01
+                    sleep(0.1)
+                    page.update()
+                  
+                img.visible = True     #img then displayed
                 img.update()
+
+                pb.visible = False
+                pb.value = 0
+                page.update()
+
+
                 
         
         def test_render(e):   #renders a test image
+            
             Engine = engine()
             test_objs = [Sphere(Vector(0, 0, 5), 0.5, colour(1, 0, 0))]
             test_cam = camera(Vector(0, 0, -1))
@@ -355,8 +371,18 @@ def main(page):
                 test_image.write_ppm(img_file)
             convert_ppm_to_png("test_image.ppm", "test_image.png")
             img.src = "test_image.png"
+            pb.visible = True
+            pb.value = 0
+            for i in range(0, 101):    #loading a progress bar not accurate of the rendering speed but for decoration
+                    pb.value = i * 0.01
+                    sleep(0.1)
+                    page.update()
+            
             img.visible = True
             img.update()
+            pb.visible = False
+            pb.value = 0
+            page.update()
 
         def validate_name(value):   #validates the name of the render
             if re.fullmatch(r'[A-Za-z0-9#_]+', value):
@@ -387,10 +413,13 @@ def main(page):
         def my_renders(e):
             page.controls.clear()
             page.add(
-                ft.Text(
-                    value="COMING SOON !!!!",
-                    font_family="Verdana",
-                ),
+                [ft.Column( 
+                    [
+                        ft.Text("My Renders", size=30, weight=ft.FontWeight.BOLD),
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,  
+                )],
                 Sign_out_Button,
             )
             page.update()
@@ -412,6 +441,8 @@ def main(page):
             options=[ft.dropdown.Option("Sphere")],
             width=300,
         )
+        pb = ft.ProgressBar(width=400)
+        pb.visible = False
         set = MyButton(text="Set", on_click=set_name)
         object_position = ft.TextField(label="Object Position", hint_text="e.g., (x, y, z)", width=300)
         object_radius = ft.TextField(label="Object Radius", hint_text="e.g., 0.5", width=300)
@@ -456,6 +487,7 @@ def main(page):
 
         page.add(
             img,
+            pb,
             ft.Column(
                 [
                     ft.Row(
@@ -497,31 +529,10 @@ def main(page):
                     added_objects,  # Display added objects
                     ft.Row([R_Button(text="Render", on_click=render)], alignment=ft.MainAxisAlignment.CENTER),
                     scene_error_message,
-                    ft.Row([R_Button(text="Test Render", on_click=test_render)], alignment=ft.MainAxisAlignment.CENTER),
+                    ft.Row([Sign_out_Button,R_Button(text="Test Render", on_click=test_render),My_Renders_Button], alignment=ft.MainAxisAlignment.CENTER),
                     
                     
-                    
-                    
-                    ft.Row(
-                        controls=[
-                            
-                            ft.Container(
-                                Sign_out_Button,
-                                                
-                                alignment=ft.alignment.Alignment(-1, 1),
-                                margin=ft.margin.all(80),
-                                expand=True,
-                            ),
-                            ft.Container(
-                                My_Renders_Button,
-                                alignment=ft.alignment.Alignment(1, 1),
-                                margin=ft.margin.all(80),
-                                expand=True,
-                            ),
-
-                        ],
-                        alignment=ft.MainAxisAlignment.CENTER,  # Adjust alignment as needed
-                    ),
+                
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,  # Center vertically
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,  # Center horizontally
@@ -531,6 +542,7 @@ def main(page):
                 spacing=10,
             )
         )
+        
         page.scroll = ft.ScrollMode.ALWAYS
         page.update()
         
