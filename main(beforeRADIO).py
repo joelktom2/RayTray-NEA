@@ -9,12 +9,14 @@ from PIL import Image
 from light import light
 from loginsys import hash_password,verify_password,create_user,login_user
 import re
+from time import sleep
 
 
 def main(page):
     page.title = "RayTray"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+    
     global User_Status  
     User_Status = None
     
@@ -34,6 +36,7 @@ def main(page):
     def guest(e):
         global User_Status
         User_Status = False
+        error_message.visible = False
         switch_to_main_ui(e)
 
     def register(e):
@@ -92,6 +95,8 @@ def main(page):
     
     
     def switch_to_main_ui(e):
+        
+        
         
         # Clear the login page
         page.controls.clear()
@@ -173,6 +178,11 @@ def main(page):
         #scene data initialization
         scene_objects = []
         lights = []
+        global scene_name
+        scene_name = None
+
+
+    
         
         
         def add_light(e):    # adds a light source to the scene 
@@ -280,6 +290,9 @@ def main(page):
             current_width.value = f"Current Width: {width_input.value}"
             current_height.value = f"Current Height: {height_input.value}"
             page.update()
+        def update_name(e):   #updates the name of the render dynamically
+            current_name.value = f"Current Name: {render_name.value}"
+            page.update()
             
 
         def pick_color(e):   #presents a color picker to the user
@@ -302,8 +315,30 @@ def main(page):
                 image = Image.open(f)
                 image.save(png_path, "PNG")
         
+        
+
+        
+        
         def render(e):   #renders the scene
+            print(page.controls[0])
             
+            if img.src:
+                page.controls.pop(0)
+                img.src = None
+            
+            img.src = None
+
+            page.update()
+            
+            
+            global scene_name
+            if scene_name == None:
+                scene_name = "image.ppm"
+                scene_name_png = "image.png"
+            else:
+                scene_name_png = scene_name + ".png"
+                scene_name = scene_name + ".ppm"
+
             if validlength(width_input.value) == False or validlength(height_input.value) == False:
                 scene_error_message.value = "Please enter valid dimensions of the scene "
                 scene_error_message.visible = True
@@ -311,51 +346,148 @@ def main(page):
                 return
             else:
                 scene_error_message.visible = False
+                pb.visible = True
+                pb.value = 0
+                
                 scene_width = int(width_input.value)
                 scene_height = int(height_input.value)
                 user_scene = Scene(scene_objects,scene_camera,scene_width,scene_height,lights)  
+                
                 Engine = engine()
                 image = Engine.render(user_scene)
-                with open("image.ppm", "w") as img_file:
+                with open(scene_name, "w") as img_file:
                     image.write_ppm(img_file)
-                    
-                convert_ppm_to_png("image.ppm", "image.png")
-                img.src = "image.png"
+
+                convert_ppm_to_png(scene_name, scene_name_png)
+                
+                img.src = scene_name_png
+                
+                
+                print("######################")
+                for i in range(0, 101):    #loading a progress bar not accurate of the rendering speed but for decoration
+                    pb.value = i * 0.01
+                    sleep(0.1)
+                    page.update()
+                  
+                img_viewer.content = img
+                page.controls.insert(0, img_viewer)
+              
                 img.visible = True
-                img.update()
+
+                pb.visible = False
+                pb.value = 0
+                page.update()
+
+
+                
+        
+        def test_render(e):   #renders a test image
+            if img.src:
+                page.controls.pop(0)
+                img.src = None
+            
+            
+            page.update()
+            
+            Engine = engine()
+            test_objs = [Sphere(Vector(0, 0, 5), 0.5, colour(1, 0, 0))]
+            test_cam = camera(Vector(0, 0, -1))
+            test_lights = [light(Vector(0, 0, 0), colour(1, 1, 1))]
+            test_scene = Scene(test_objs, test_cam, 300, 200, test_lights)
+            test_image = Engine.render(test_scene)
+            with open("test_image.ppm", "w") as img_file:
+                test_image.write_ppm(img_file)
+            convert_ppm_to_png("test_image.ppm", "test_image.png")
+            img.src = "test_image.png"
+            pb.visible = True
+            pb.value = 0
+            
+            for i in range(0, 101):    #loading a progress bar not accurate of the rendering speed but for decoration
+                    pb.value = i * 0.01
+                    sleep(0.1)
+                    page.update()
+            
+            
+            img_viewer.content = img
+            
+            page.controls.insert(0, img_viewer)
+
+
+            print((img_viewer.content).src)
+            img.visible = True
+            
+            
+
+            
+            pb.visible = False
+            pb.value = 0
+
+            page.update()
 
         
+        
+        
+        
+        def validate_name(value):   #validates the name of the render
+            if re.fullmatch(r'[A-Za-z0-9#_]+', value):
+                return True
+            return False
+        
+        def set_name(e):   #sets the name of the render
+            if validate_name(render_name.value):
+                name_error_message.visible = False
+                render_name.value = render_name.value
+                global scene_name
+                scene_name = render_name.value
+                page.update()
+            else:
+                name_error_message.value = "Please enter a name for the render"
+                name_error_message.visible = True
+                page.update()
+            
         def sign_out(e):
             global User_Status
             User_Status = None
-            
+            page.controls.clear()
+            username.value = ""
+            password.value = ""
+            loginpage()
             page.update()
         
         def my_renders(e):
             page.controls.clear()
             page.add(
-                ft.Text(
-                    value="This text is rendered",
-                    font_family="Verdana",
-                )
+                [ft.Column( 
+                    [
+                        ft.Text("My Renders", size=30, weight=ft.FontWeight.BOLD),
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,  
+                )],
+                Sign_out_Button,
             )
             page.update()
         
         selected_color = None  # Holds the selected color
 
-        light_pos = ft.TextField(hint_text="Light Source", width=600)
-        cam_pos = ft.TextField(hint_text="Camera Position", width=600)
-        width_input = ft.TextField(hint_text="Width", width=200, on_change=update_dimensions)
-        height_input = ft.TextField(hint_text="Height", width=200, on_change=update_dimensions)
+        render_name = ft.TextField(label="Render Name",hint_text="e.g., My_Render", width=600, on_change=update_name)
+        light_pos = ft.TextField(label="Light Source Postion",hint_text="e.g., (x, y, z)", width=600)
+        cam_pos = ft.TextField(label= "Camera Postion",hint_text="e.g., (x, y, z)", width=600)
+        width_input = ft.TextField(label = "Width",hint_text="e.g., 300", width=200, on_change=update_dimensions)
+        height_input = ft.TextField(label = "height",hint_text="e.g., 200", width=200, on_change=update_dimensions)
 
         current_width = ft.Text("Current Width: ")
         current_height = ft.Text("Current Height: ")
+        current_name = ft.Text("Current Name: ")
 
         object_type = ft.Dropdown(
             label="Object Type",
             options=[ft.dropdown.Option("Sphere")],
             width=300,
         )
+        pb = ft.ProgressBar(width=400)
+        pb.visible = False
+        set = MyButton(text="Set", on_click=set_name)
         object_position = ft.TextField(label="Object Position", hint_text="e.g., (x, y, z)", width=300)
         object_radius = ft.TextField(label="Object Radius", hint_text="e.g., 0.5", width=300)
         color_picker_button = MyButton(text="Pick Color", on_click=pick_color)
@@ -382,6 +514,11 @@ def main(page):
         color= ft.colors.RED,
         visible=False,
         )
+        name_error_message = ft.Text(
+        "",
+        color= ft.colors.RED,
+        visible=False,
+        )
 
         Sign_out_Button= Fancy_Button(text="Sign Out", on_click=sign_out,)
         My_Renders_Button= Fancy_Button(text="My Renders", on_click=my_renders,)
@@ -391,11 +528,26 @@ def main(page):
         else:
             My_Renders_Button.visible = False
         
+        img_viewer = ft.InteractiveViewer(
+            min_scale=0.1,
+            max_scale=15,
+            boundary_margin=ft.margin.all(20),
+            content=img,
+        )
+        
+        
 
         page.add(
-            img,
+            
+            pb,
             ft.Column(
                 [
+                    ft.Row(
+                        [render_name,set], alignment=ft.MainAxisAlignment.CENTER
+                        
+                    ),
+                    name_error_message,
+                    current_name,
                     ft.Row(
                         [light_pos,add_light_button], alignment=ft.MainAxisAlignment.CENTER
                         
@@ -408,7 +560,7 @@ def main(page):
                         [cam_pos,add_cam_button], alignment=ft.MainAxisAlignment.CENTER
                     ),
                     cam_error_message,
-                    ft.Text("Added Lights:"),
+                    ft.Text("Added Cameras:"),
                     added_cam,
                     ft.Row([width_input, height_input], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Row([current_width, current_height], alignment=ft.MainAxisAlignment.CENTER),
@@ -429,13 +581,10 @@ def main(page):
                     added_objects,  # Display added objects
                     ft.Row([R_Button(text="Render", on_click=render)], alignment=ft.MainAxisAlignment.CENTER),
                     scene_error_message,
+                    ft.Row([Sign_out_Button,R_Button(text="Test Render", on_click=test_render),My_Renders_Button], alignment=ft.MainAxisAlignment.CENTER),
                     
-                    ft.Container(
-                        My_Renders_Button,
-                        alignment=ft.alignment.Alignment(1, 1),  
-                        margin=ft.margin.all(80), 
-                        expand=True, 
-                    ),
+                    
+                
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,  # Center vertically
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,  # Center horizontally
@@ -445,6 +594,7 @@ def main(page):
                 spacing=10,
             )
         )
+        
         page.scroll = ft.ScrollMode.ALWAYS
         page.update()
         
@@ -465,29 +615,33 @@ def main(page):
     register_button = ft.ElevatedButton(text="Register", on_click=register)
     guest_button = ft.ElevatedButton(text="Continue as Guest", on_click=guest)
     
-    page.add(
-        ft.Column(
-            [
-                ft.Text("Welcome to RayTray", size=20, weight=ft.FontWeight.BOLD),
-                username,
-                password,
-                ft.Row(
-                    [
-                        login_button,
-                        register_button,
+    def loginpage():
+        page.add(
+            ft.Column(
+                [
+                    ft.Text("Welcome to RayTray", size=20, weight=ft.FontWeight.BOLD),
+                    username,
+                    password,
+                    ft.Row(
+                        [
+                            login_button,
+                            register_button,
 
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    spacing=10,
-                ),
-                error_message,
-                guest_button,
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        spacing=10,
+                    ),
+                    error_message,
+                    guest_button,
 
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            )
         )
-    )
+        page.vertical_alignment = ft.MainAxisAlignment.CENTER
+        page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
+    loginpage()
 
 ft.app(main)

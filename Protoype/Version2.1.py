@@ -96,6 +96,8 @@ def main(page):
     
     def switch_to_main_ui(e):
         
+        
+        
         # Clear the login page
         page.controls.clear()
         
@@ -178,6 +180,9 @@ def main(page):
         lights = []
         global scene_name
         scene_name = None
+
+
+    
         
         
         def add_light(e):    # adds a light source to the scene 
@@ -310,11 +315,22 @@ def main(page):
                 image = Image.open(f)
                 image.save(png_path, "PNG")
         
+        
+
+        
+        
         def render(e):   #renders the scene
-            img.visible = False
-            img.update()
+            print(page.controls[0])
+            
+            if img.src:
+                page.controls.pop(0)
+                img.src = None
+            
             img.src = None
-            img.update()
+
+            page.update()
+            
+            
             global scene_name
             if scene_name == None:
                 scene_name = "image.ppm"
@@ -332,6 +348,7 @@ def main(page):
                 scene_error_message.visible = False
                 pb.visible = True
                 pb.value = 0
+                
                 scene_width = int(width_input.value)
                 scene_height = int(height_input.value)
                 user_scene = Scene(scene_objects,scene_camera,scene_width,scene_height,lights)  
@@ -342,15 +359,20 @@ def main(page):
                     image.write_ppm(img_file)
 
                 convert_ppm_to_png(scene_name, scene_name_png)
+                
                 img.src = scene_name_png
                 
+                
+                print("######################")
                 for i in range(0, 101):    #loading a progress bar not accurate of the rendering speed but for decoration
                     pb.value = i * 0.01
                     sleep(0.1)
                     page.update()
                   
-                img.visible = True     #img then displayed
-                img.update()
+                img_viewer.content = img
+                page.controls.insert(0, img_viewer)
+              
+                img.visible = True
 
                 pb.visible = False
                 pb.value = 0
@@ -360,6 +382,12 @@ def main(page):
                 
         
         def test_render(e):   #renders a test image
+            if img.src:
+                page.controls.pop(0)
+                img.src = None
+            
+            
+            page.update()
             
             Engine = engine()
             test_objs = [Sphere(Vector(0, 0, 5), 0.5, colour(1, 0, 0))]
@@ -373,17 +401,33 @@ def main(page):
             img.src = "test_image.png"
             pb.visible = True
             pb.value = 0
+            
             for i in range(0, 101):    #loading a progress bar not accurate of the rendering speed but for decoration
                     pb.value = i * 0.01
                     sleep(0.1)
                     page.update()
             
+            
+            img_viewer.content = img
+            
+            page.controls.insert(0, img_viewer)
+
+
+            print((img_viewer.content).src)
             img.visible = True
-            img.update()
+            
+            
+
+            
             pb.visible = False
             pb.value = 0
+
             page.update()
 
+        
+        
+        
+        
         def validate_name(value):   #validates the name of the render
             if re.fullmatch(r'[A-Za-z0-9#_]+', value):
                 return True
@@ -484,9 +528,17 @@ def main(page):
         else:
             My_Renders_Button.visible = False
         
+        img_viewer = ft.InteractiveViewer(
+            min_scale=0.1,
+            max_scale=15,
+            boundary_margin=ft.margin.all(20),
+            content=img,
+        )
+        
+        
 
         page.add(
-            img,
+            
             pb,
             ft.Column(
                 [
