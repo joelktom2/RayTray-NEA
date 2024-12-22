@@ -1,5 +1,6 @@
 import flet as ft
 import os
+from time import sleep
 
 def main(page: ft.Page):
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -16,12 +17,21 @@ def main(page: ft.Page):
         [
             ft.Column(
                 [
-                    ft.ElevatedButton(text="Pause", on_click=lambda e: audio.pause()),
+                    ft.ElevatedButton(text="Radio", on_click=lambda e: audio.pause()),
                 ]
             )
         ]
     )
     radiotile.visible = False
+    
+    def player():
+        audio.play()
+        sleep(10)
+        print(audio.get_current_position)
+        
+        #play_next(e=None)
+    
+    
     
     
     def minimize_radiotile(e):
@@ -32,7 +42,7 @@ def main(page: ft.Page):
         radiotile.visible = True
         
         page.update()
-        audio.play()
+        player()
         
     def play_next(e):
         audio.release()
@@ -47,11 +57,12 @@ def main(page: ft.Page):
         audio.src = audio_file
         print(audio.src)
         page.update()
-        audio.play()
+        player()
         print(f"Playing song: {playlist[song_index]}")
         
         
-    
+   
+
     # Audio control
     
     
