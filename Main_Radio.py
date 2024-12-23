@@ -20,6 +20,8 @@ song_index = 0
 playlist = [f for f in os.listdir(radio_folder) if f.endswith(".mp3")]
 print(playlist)
 audio_file = os.path.join(radio_folder, playlist[song_index])
+print(audio_file)
+print("##########first song above")
 audio = ft.Audio(src=audio_file, autoplay=False)
 
 
@@ -561,7 +563,8 @@ def main(page):
         )
         
         
-        
+        now_playing = ft.Text(f"Now Playing: {(playlist[song_index]).split(".mp3")[0]}")
+
         def play_next(e):
             audio.release()
             global song_index
@@ -577,6 +580,9 @@ def main(page):
             page.update()
             audio.play()
             print(f"Playing song: {playlist[song_index]}")
+            now_playing.value = f"Now Playing: {(playlist[song_index]).split(".mp3")[0]}"
+            page.update()
+
         
         audio.on_seek_complete = play_next
         
@@ -596,11 +602,25 @@ def main(page):
             audio.resume()
         def pause(e):
             audio.pause()
+
+        def volume_down(e):
+            audio.volume -= 0.1
+            audio.update()
+
+        def volume_up(e):
+            audio.volume += 0.1
+            audio.update()
+
+        def mute(e):
+            audio.volume = 0
+            audio.update()
+
         
         Radio_switch = ft.Switch(label="Radio", value=False , on_change= radio_switch_toggle)
         
         radio = ft.Column(
             [   
+                now_playing,
                 ft.Row(
                     [
                     
@@ -636,6 +656,33 @@ def main(page):
                     on_click=play_next
                     ),
                     
+                    ]
+                ),
+                ft.Row(
+                    [
+                        ft.IconButton(
+                            icon=ft.icons.VOLUME_DOWN_OUTLINED,
+                            icon_color="blue400",
+                            icon_size=20,
+                            tooltip="Volume Down",
+                            on_click=volume_down
+                        ),
+
+                        ft.IconButton(
+                            icon=ft.icons.VOLUME_UP_OUTLINED,
+                            icon_color="blue400",
+                            icon_size=20,
+                            tooltip="Volume UP",
+                            on_click=volume_up
+                        ),
+
+                        ft.IconButton(
+                            icon=ft.icons.VOLUME_MUTE_OUTLINED,
+                            icon_color="blue400",
+                            icon_size=20,
+                            tooltip="Mute",
+                            on_click=mute
+                        ),
                     ]
                 )
                 
