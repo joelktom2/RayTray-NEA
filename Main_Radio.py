@@ -562,13 +562,72 @@ def main(page):
             content=img,
         )
         
+        slider = ft.Slider(value=0.0)
         
-        now_playing = ft.Text(f"Now Playing: {(playlist[song_index]).split(".mp3")[0]}")
+        def update_slider(e):
+       
+            slider.value = audio.get_current_position() / audio.get_duration()
+            slider.label = f"{int(slider.value * 100)}%"
+            page.update()
+            slider.update()
+
+
+        audio.on_position_changed = update_slider
+        
+        def manual_slider_update(e):
+        
+            print("###########################")
+            print(slider.value * audio.get_duration())
+            print(slider.value)
+            print(audio.get_duration())
+            audio.seek(int(slider.value * audio.get_duration()))
+            page.update()
+            slider.update()
+            audio.update()
+            
+
+        slider.on_change_end = manual_slider_update
+        
+        
+        
+        
+        
+        
+        now_playing = ft.Text(f"{(playlist[song_index]).split(".mp3")[0]}")
 
         def play_next(e):
+        
+            if audio.get_current_position() == 0:
+                print("Song ended")
+            
+                audio.release()
+                global song_index
+
+                audio_file_name = os.path.basename(audio.src)
+                song_index = playlist.index(audio_file_name)
+                if song_index == len(playlist) - 1:
+                    song_index = -1
+                song_index += 1
+                audio_file = os.path.join(radio_folder, playlist[song_index])
+                audio.src = audio_file
+                print(audio.src)
+                now_playing.value = f"{(playlist[song_index]).split('.mp3')[0]}"
+                
+                page.update()
+                audio.play()
+                print(f"Playing song: {playlist[song_index]}")
+            
+            else:
+                print(audio.get_current_position())
+                print(audio.get_duration())
+                print("Song not ended")
+                
+        
+
+        def play_next_button(e):
             audio.release()
             global song_index
-    
+
             audio_file_name = os.path.basename(audio.src)
             song_index = playlist.index(audio_file_name)
             if song_index == len(playlist) - 1:
@@ -577,11 +636,10 @@ def main(page):
             audio_file = os.path.join(radio_folder, playlist[song_index])
             audio.src = audio_file
             print(audio.src)
+            now_playing.value = f"{(playlist[song_index]).split('.mp3')[0]}"
             page.update()
             audio.play()
             print(f"Playing song: {playlist[song_index]}")
-            now_playing.value = f"Now Playing: {(playlist[song_index]).split(".mp3")[0]}"
-            page.update()
 
         
         audio.on_seek_complete = play_next
@@ -620,6 +678,7 @@ def main(page):
         
         radio = ft.Column(
             [   
+                ft.Text("Now Playing:"),
                 now_playing,
                 ft.Row(
                     [
@@ -653,8 +712,10 @@ def main(page):
                     icon_color="blue400",
                     icon_size=20,
                     tooltip="SKIP NEXT",
-                    on_click=play_next
+                    on_click=play_next_button
                     ),
+                
+                
                     
                     ]
                 ),
@@ -684,7 +745,8 @@ def main(page):
                             on_click=mute
                         ),
                     ]
-                )
+                ),
+                slider
                 
                 
                            
