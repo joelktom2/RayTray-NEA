@@ -54,4 +54,20 @@ def login_user(username, password):
             connection.close()
             return False
     
+
+def get_user_id(username):
+    connection = sqlite3.connect('data.db')
+    cursor = connection.cursor()
+    cursor.execute("""
+    SELECT UserID FROM Users WHERE Username = ?
+    """, (username,))
+    result = cursor.fetchone()
+    connection.close()
+
+    if result:
+        return result[0]  # Return the UserID
+    else:
+        return None  # Return None if no matching user is found
     
+
+print(get_user_id("joel"))

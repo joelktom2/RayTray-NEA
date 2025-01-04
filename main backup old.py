@@ -10,6 +10,7 @@ from light import light
 from loginsys import hash_password,verify_password,create_user,login_user
 import re
 from time import sleep
+import os
 
 
 def main(page):
@@ -360,6 +361,8 @@ def main(page):
 
                 convert_ppm_to_png(scene_name, scene_name_png)
                 
+                os.remove(scene_name)   #deletes the ppm file after conversion
+
                 img.src = scene_name_png
                 
                 
@@ -398,6 +401,9 @@ def main(page):
             with open("test_image.ppm", "w") as img_file:
                 test_image.write_ppm(img_file)
             convert_ppm_to_png("test_image.ppm", "test_image.png")
+            
+            os.remove("test_image.ppm")   #deletes the ppm file after conversion
+
             img.src = "test_image.png"
             pb.visible = True
             pb.value = 0
