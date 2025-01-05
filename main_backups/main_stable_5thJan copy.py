@@ -510,22 +510,8 @@ def main(page):
             loginpage()
             page.update()
         
-        img_carousel = ft.Column(
-            [],
-        )
-        
-        
         def my_renders(e):
             page.controls.clear()
-            
-            scenes = get_scenes(get_user_id(username.value))
-            image_paths = [row[0] for row in scenes]
-
-            for image_path in image_paths:
-                img.src = image_path
-                img_viewer.content = img
-                img_carousel.controls.append(img_tile)
-                page.update()
             
             page.add(
                 ft.Column( 
@@ -535,19 +521,12 @@ def main(page):
                     alignment=ft.MainAxisAlignment.CENTER,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,  
                 ),
-                img_carousel,
                 Sign_out_Button,
             )
             page.update()
         
         selected_color = None  # Holds the selected color
 
-        
-        
-        
-        
-        
-        
         render_name = ft.TextField(label="Render Name",hint_text="e.g., My_Render", width=600,)
         light_pos = ft.TextField(label="Light Source Postion",hint_text="e.g., (x, y, z)", width=600)
         cam_pos = ft.TextField(label= "Camera Postion",hint_text="e.g., (x, y, z)", width=600)

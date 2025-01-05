@@ -29,5 +29,6 @@ def get_scenes(user_id):
     connection.close()
     return result
 
-
-
+create_scene(6, 'image1.jpg')
+create_scene(6, 'image2.jpg')
+create_scene(6, 'image3.jpg')

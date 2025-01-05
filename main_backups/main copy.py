@@ -13,7 +13,6 @@ import re
 from time import sleep
 import os
 
-names =[]
 
 def main(page):
     page.title = "RayTray"
@@ -368,22 +367,15 @@ def main(page):
             page.update()
             
             
-            
             global scene_name
             if scene_name == None:
                 scene_name = "image.ppm"
                 scene_name_png = "image.png"
             else:
-    
-                if scene_name[-1] == "#" or scene_name in names:
-                    scene_name = scene_name + "#"
-
-                names.append(scene_name)
+                
 
                 scene_name_png = scene_name + ".png"
                 scene_name_ppm = scene_name + ".ppm"
-            
-            current_name.value = f"Current Name: {scene_name}"
 
             if final_validation() == False:
                 pass
@@ -422,8 +414,8 @@ def main(page):
                 pb.visible = False
                 pb.value = 0
                 
-                
-                
+                scene_name = None
+                current_name.value = "Current Name: "
                 page.update()
 
 
@@ -487,8 +479,7 @@ def main(page):
         def set_name(e):   #sets the name of the render
             if validate_name(render_name.value):
                 name_error_message.visible = False
-                if render_name.value[-1] == "#" or render_name.value in names:
-                    render_name.value = render_name.value + "#"
+                
                 
                 
                 global scene_name
@@ -510,22 +501,8 @@ def main(page):
             loginpage()
             page.update()
         
-        img_carousel = ft.Column(
-            [],
-        )
-        
-        
         def my_renders(e):
             page.controls.clear()
-            
-            scenes = get_scenes(get_user_id(username.value))
-            image_paths = [row[0] for row in scenes]
-
-            for image_path in image_paths:
-                img.src = image_path
-                img_viewer.content = img
-                img_carousel.controls.append(img_tile)
-                page.update()
             
             page.add(
                 ft.Column( 
@@ -535,19 +512,12 @@ def main(page):
                     alignment=ft.MainAxisAlignment.CENTER,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,  
                 ),
-                img_carousel,
                 Sign_out_Button,
             )
             page.update()
         
         selected_color = None  # Holds the selected color
 
-        
-        
-        
-        
-        
-        
         render_name = ft.TextField(label="Render Name",hint_text="e.g., My_Render", width=600,)
         light_pos = ft.TextField(label="Light Source Postion",hint_text="e.g., (x, y, z)", width=600)
         cam_pos = ft.TextField(label= "Camera Postion",hint_text="e.g., (x, y, z)", width=600)

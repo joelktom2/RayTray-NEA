@@ -1,12 +1,7 @@
+a = "apple"
 
+list = []
 
-def func():  
-    #global a_variable
-    pass
-  # for checking existence in globals() function
-    
-
-# driver codedef 
-
-        
-print('a_variable' in globals())
+list.append(a)
+list.append(a)
+print(list)
