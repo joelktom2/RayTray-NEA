@@ -1,4 +1,5 @@
 import sqlite3
+import os
 def init():    
     connection = sqlite3.connect('data.db')
     cursor = connection.cursor()
@@ -29,6 +30,18 @@ def get_scenes(user_id):
     connection.close()
     return result
 
-create_scene(6, 'image1.jpg')
-create_scene(6, 'image2.jpg')
-create_scene(6, 'image3.jpg')
+
+def add_img(user_id,img):
+    image_path = os.path.abspath(img)
+    connection = sqlite3.connect('data.db')
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO Scenes (UserID, ImagePath) VALUES (?, ?)", (user_id, image_path))
+    connection.commit()
+    connection.close()
+
+add_img(8,'pic1.jpg')
+add_img(8,'pic2.jpg')
+add_img(8,'pic3.jpg')
+add_img(8,'pic4.jpg')
+
+print("done")

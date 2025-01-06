@@ -60,13 +60,6 @@ def main(page):
         
         page.update()
         create_user(usern,pwd)
-        
-        path = f'C:/Users/jobyk/python/RayTray - NEA/User_Data/{get_user_id(usern)}' 
-        if not os.path.exists(path):
-            os.makedirs(path)
-        
-        
-        
         global User_Status
         User_Status = True
         switch_to_main_ui(e)
@@ -412,9 +405,7 @@ def main(page):
                 
                 os.remove(scene_name_ppm)   #deletes the ppm file after conversion
 
-                os.rename(scene_name_png, f"User_Data/{get_user_id(username.value)}/{scene_name_png}")
-                
-                img.src = f"User_Data/{get_user_id(username.value)}/{scene_name_png}"
+                img.src = scene_name_png
                 
                 
                 print("######################")
@@ -519,12 +510,9 @@ def main(page):
             loginpage()
             page.update()
         
-        def img_showcaser_from_carousel(e):
-            pass
-        
-        
-        img_carousel = ft.Row(expand=1, wrap=False, scroll="always")
-        
+        img_carousel = ft.Column(
+            [],
+        )
         
         
         def my_renders(e):
@@ -534,7 +522,9 @@ def main(page):
             image_paths = [row[0] for row in scenes]
 
             for image_path in image_paths:
-                img_carousel.controls.append(ft.Image(src=image_path, width=300, height=300, fit=ft.ImageFit.CONTAIN,))
+                img.src = image_path
+                img_viewer.content = img
+                img_carousel.controls.append(img_tile)
                 page.update()
             
             page.add(
@@ -689,8 +679,6 @@ def main(page):
             ],
             alignment=ft.MainAxisAlignment.CENTER,
         )
-
-        
         
         
       
