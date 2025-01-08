@@ -7,13 +7,13 @@ from tkinter import Tk, colorchooser
 from scene import Scene,camera
 from PIL import Image
 from light import light
-from loginsys import hash_password,verify_password,create_user,login_user,get_user_id
-from scenes_table import create_scene,get_scenes
+from loginsys import create_user,login_user,get_user_id
+from scenes_table import create_scene,get_scenes,get_scene_names
 import re
 from time import sleep
 import os
 
-names =[]
+names = []
 
 def main(page):
     page.title = "RayTray"
@@ -69,6 +69,10 @@ def main(page):
         
         global User_Status
         User_Status = True
+
+        global names
+        names = []
+
         switch_to_main_ui(e)
     
     def login(e):
@@ -101,10 +105,18 @@ def main(page):
         page.update()
         global User_Status
         User_Status = True
+        
+        
+        global user_scene_names
+        user_scene_names = [row[0] for row in (get_scene_names(get_user_id(usern)))]
+
+        
         switch_to_main_ui(e)   #switches to the main UI when the user logs in successfully
     
     
     def switch_to_main_ui(e):
+
+        error_message.visible = False
         
         
         
@@ -382,7 +394,9 @@ def main(page):
                 scene_name_png = "image.png"
             else:
     
-                if scene_name[-1] == "#" or scene_name in names:
+                global names
+                global user_scene_names
+                if scene_name[-1] == "#" or scene_name in user_scene_names or scene_name in names:
                     scene_name = scene_name + "#"
 
                 names.append(scene_name)
@@ -469,17 +483,10 @@ def main(page):
             
             
             img_viewer.content = img
-            
             page.controls.insert(0, img_tile)
-
-
-            
+            pb.visible = False
             img.visible = True
             
-            
-
-            
-            pb.visible = False
             pb.value = 0
 
             page.update()
@@ -519,8 +526,7 @@ def main(page):
             loginpage()
             page.update()
         
-        def img_showcaser_from_carousel(e):
-            pass
+        
         
         
         img_carousel = ft.Row(expand=1, wrap=False, scroll="always")
@@ -546,7 +552,10 @@ def main(page):
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,  
                 ),
                 img_carousel,
+                main_menu_Button,
                 Sign_out_Button,
+                
+
             )
             page.update()
         
@@ -610,6 +619,7 @@ def main(page):
 
         Sign_out_Button= Fancy_Button(text="Sign Out", on_click=sign_out,)
         My_Renders_Button= Fancy_Button(text="My Renders", on_click=my_renders,)
+        main_menu_Button= Fancy_Button(text="Main Menu", on_click=switch_to_main_ui,)
         
         if User_Status == True:
             My_Renders_Button.visible = True
@@ -625,12 +635,13 @@ def main(page):
         
         def img_to_library(e):
             
-            img_path = os.path.abspath(img.src)
+            
             
             userID = get_user_id(username.value)
             
-            create_scene(userID,img_path)
-            page.add(ft.Text(f"{img.src} added to library"))
+            create_scene(userID,img.src,scene_name)
+
+            page.add(ft.Text(f"{scene_name} added to library"))
             page.update()
             
 
@@ -775,7 +786,11 @@ def main(page):
     guest_button = ft.ElevatedButton(text="Continue as Guest", on_click=guest)
     
     def loginpage():
+        page.vertical_alignment = ft.MainAxisAlignment.CENTER
+        page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+    
         page.add(
+
             ft.Column(
                 [
                     ft.Text("Welcome to RayTray", size=20, weight=ft.FontWeight.BOLD),
@@ -798,8 +813,8 @@ def main(page):
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             )
         )
-        page.vertical_alignment = ft.MainAxisAlignment.CENTER
-        page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+
+        page.update()
 
     loginpage()
 

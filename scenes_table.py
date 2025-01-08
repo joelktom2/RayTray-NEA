@@ -15,10 +15,10 @@ def init():
     connection.commit()
     connection.close()
 
-def create_scene(user_id, image_path):
+def create_scene(user_id, image_path,img_Name):
     connection = sqlite3.connect('data.db')
     cursor = connection.cursor()
-    cursor.execute("INSERT INTO Scenes (UserID, ImagePath) VALUES (?, ?)", (user_id, image_path))
+    cursor.execute("INSERT INTO Scenes (UserID, ImagePath, Scene_Name) VALUES (?, ?, ?)", (user_id, image_path, img_Name))
     connection.commit()
     connection.close()
 
@@ -39,9 +39,11 @@ def add_img(user_id,img):
     connection.commit()
     connection.close()
 
-add_img(8,'pic1.jpg')
-add_img(8,'pic2.jpg')
-add_img(8,'pic3.jpg')
-add_img(8,'pic4.jpg')
+def get_scene_names(user_id):
+    connection = sqlite3.connect('data.db')
+    cursor = connection.cursor()
+    cursor.execute("SELECT Scene_Name FROM Scenes WHERE UserID = ?", (user_id,))
+    result = cursor.fetchall()
+    connection.close()
+    return result
 
-print("done")
