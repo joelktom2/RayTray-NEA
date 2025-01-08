@@ -1,19 +1,26 @@
+#My libraries
 from image import colour
 from Maths import Vector
 from objects import Sphere
 from engine import engine
-import flet as ft
-from tkinter import Tk, colorchooser
 from scene import Scene,camera
-from PIL import Image
 from light import light
 from loginsys import create_user,login_user,get_user_id
 from scenes_table import create_scene,get_scenes,get_scene_names
+ 
+#3rd part libraries
+import flet as ft
+from tkinter import Tk, colorchooser
+from tkinter import Tk, filedialog
+from PIL import Image
 import re
 from time import sleep
 import os
+import shutil
+import win32clipboard
+import io
 
-names = []
+
 
 def main(page):
     page.title = "RayTray"
@@ -48,7 +55,7 @@ def main(page):
         if not usern or not pwd:
             error_message.value = "Invalid username or password"
             error_message.visible = True
-            print("here")
+            
             page.update()
             return
         #input sanitation
@@ -70,12 +77,13 @@ def main(page):
         global User_Status
         User_Status = True
 
-        global names
-        names = []
+        
 
         switch_to_main_ui(e)
     
     def login(e):
+        
+        
         usern = str(username.value)
         pwd = str(password.value)
         #input sanitation
@@ -106,9 +114,8 @@ def main(page):
         global User_Status
         User_Status = True
         
-        
-        global user_scene_names
-        user_scene_names = [row[0] for row in (get_scene_names(get_user_id(usern)))]
+        global names
+        names = [row[0] for row in (get_scene_names(get_user_id(usern)))]
 
         
         switch_to_main_ui(e)   #switches to the main UI when the user logs in successfully
@@ -118,6 +125,9 @@ def main(page):
 
         error_message.visible = False
         
+        global names
+        if names == 7:
+            pass
         
         
         # Clear the login page
@@ -342,7 +352,7 @@ def main(page):
         
         
         def final_validation():   #validates the scene before rendering
-            print("sdfsdfsdgsgdfg")
+            
             
             if lights == []:
                 light_error_message.value = "Please enter a light source"
@@ -376,7 +386,7 @@ def main(page):
         
         
         def render(e):   #renders the scene
-            print(page.controls[0])
+            print(f"the top control is {page.controls[0]} ")
             
             if img.src:
                 page.controls.pop(0)
@@ -389,17 +399,22 @@ def main(page):
             
             
             global scene_name
+            print(f"the scene name is {scene_name}")
+            
             if scene_name == None:
                 scene_name = "image.ppm"
                 scene_name_png = "image.png"
             else:
     
                 global names
-                global user_scene_names
-                if scene_name[-1] == "#" or scene_name in user_scene_names or scene_name in names:
+                
+                print(f"the names are {names}")
+                while scene_name in names:
                     scene_name = scene_name + "#"
 
-                names.append(scene_name)
+
+                if scene_name not in names:
+                    names.append(scene_name)
 
                 scene_name_png = scene_name + ".png"
                 scene_name_ppm = scene_name + ".ppm"
@@ -426,10 +441,11 @@ def main(page):
                 
                 os.remove(scene_name_ppm)   #deletes the ppm file after conversion
 
-                os.rename(scene_name_png, f"User_Data/{get_user_id(username.value)}/{scene_name_png}")
-                
-                img.src = f"User_Data/{get_user_id(username.value)}/{scene_name_png}"
-                
+                if User_Status:
+                    os.rename(scene_name_png, f"User_Data/{get_user_id(username.value)}/{scene_name_png}")
+                    img.src = f"User_Data/{get_user_id(username.value)}/{scene_name_png}"
+                else:
+                    img.src = scene_name_png
                 
                 print("######################")
                 for i in range(0, 101):    #loading a progress bar not accurate of the rendering speed but for decoration
@@ -478,7 +494,7 @@ def main(page):
             
             for i in range(0, 101):    #loading a progress bar not accurate of the rendering speed but for decoration
                 pb.value = i * 0.02
-                sleep(0.1)
+                sleep(0.1) 
                 page.update()
             
             
@@ -628,6 +644,7 @@ def main(page):
         
         
         def remove_img(e):
+            os.remove(img.src)
             img.src = None
             page.controls.pop(0)
             page.update()
@@ -645,7 +662,53 @@ def main(page):
             page.update()
             
 
-            
+        
+
+        def download_file(file_path):
+    
+            # Initialize Tkinter and hide the root window
+            root = Tk()
+            root.withdraw()
+            root.attributes('-topmost', True)  # Bring file dialog to the front
+
+            # Ask user to choose a destination folder
+            destination_folder = filedialog.askdirectory(title="Select Destination Folder")
+            if not destination_folder:
+                print("No destination folder selected. Operation cancelled.")
+                return
+
+            # Extract the file name and copy the file to the selected folder
+            file_name = file_path.split('/')[-1]
+            destination_path = f"{destination_folder}/{file_name}"
+
+            try:
+                shutil.copy(file_path, destination_path)
+                print(f"File downloaded successfully to: {destination_path}")
+            except Exception as e:
+                print(f"An error occurred while copying the file: {e}")
+
+
+        def copy_image_to_clipboard(image_path):
+
+            try:
+                # Open the image file
+                image = Image.open(image_path)
+
+                # Convert the image to BMP format for clipboard compatibility
+                output = io.BytesIO()
+                image.convert("RGB").save(output, "BMP")
+                bmp_data = output.getvalue()[14:]  # Remove the BMP header
+                output.close()
+
+                # Open clipboard and set the image data
+                win32clipboard.OpenClipboard()
+                win32clipboard.EmptyClipboard()
+                win32clipboard.SetClipboardData(win32clipboard.CF_DIB, bmp_data)
+                win32clipboard.CloseClipboard()
+
+                print("Image successfully copied to the clipboard!")
+            except Exception as e:
+                print(f"Error copying image to clipboard: {e}")
         
         def img_showcaser(e):
             page.controls.clear()
@@ -655,13 +718,15 @@ def main(page):
                     img_viewer,
                     ft.Row([
                         ft.IconButton(icon=ft.icons.ADD ,tooltip= "add to library", on_click=img_to_library),
-                        ft.IconButton(icon=ft.icons.DOWNLOAD ,tooltip= "download", on_click=None),
+                        ft.IconButton(icon=ft.icons.DOWNLOAD ,tooltip= "download", on_click=lambda e: download_file(img.src)),
                         ft.IconButton(icon=ft.icons.DELETE ,tooltip= "delete", on_click=remove_img),
-                        ft.IconButton(icon=ft.icons.SHARE ,tooltip= "Share", on_click=None),],    
+                        ft.IconButton(icon=ft.icons.CONTENT_COPY ,tooltip= "Copy", on_click= lambda e: copy_image_to_clipboard(img.src)),],    
                     alignment=ft.MainAxisAlignment.CENTER,
                     ),
                     
+                    main_menu_Button,
                     Sign_out_Button,
+                    
 
                 )
                 page.update()
@@ -786,6 +851,10 @@ def main(page):
     guest_button = ft.ElevatedButton(text="Continue as Guest", on_click=guest)
     
     def loginpage():
+        
+        global names 
+        names = []
+
         page.vertical_alignment = ft.MainAxisAlignment.CENTER
         page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     
@@ -814,8 +883,11 @@ def main(page):
             )
         )
 
+
+
         page.update()
 
     loginpage()
 
 ft.app(main)
+

@@ -7,13 +7,13 @@ from tkinter import Tk, colorchooser
 from scene import Scene,camera
 from PIL import Image
 from light import light
-from loginsys import create_user,login_user,get_user_id
-from scenes_table import create_scene,get_scenes,get_scene_names
+from loginsys import hash_password,verify_password,create_user,login_user,get_user_id
+from scenes_table import create_scene,get_scenes
 import re
 from time import sleep
 import os
 
-
+names =[]
 
 def main(page):
     page.title = "RayTray"
@@ -48,7 +48,7 @@ def main(page):
         if not usern or not pwd:
             error_message.value = "Invalid username or password"
             error_message.visible = True
-            
+            print("here")
             page.update()
             return
         #input sanitation
@@ -60,23 +60,11 @@ def main(page):
         
         page.update()
         create_user(usern,pwd)
-        
-        path = f'C:/Users/jobyk/python/RayTray - NEA/User_Data/{get_user_id(usern)}' 
-        if not os.path.exists(path):
-            os.makedirs(path)
-        
-        
-        
         global User_Status
         User_Status = True
-
-        
-
         switch_to_main_ui(e)
     
     def login(e):
-        
-        
         usern = str(username.value)
         pwd = str(password.value)
         #input sanitation
@@ -106,21 +94,11 @@ def main(page):
         page.update()
         global User_Status
         User_Status = True
-        
-        global names
-        names = [row[0] for row in (get_scene_names(get_user_id(usern)))]
-
-        
         switch_to_main_ui(e)   #switches to the main UI when the user logs in successfully
     
     
     def switch_to_main_ui(e):
-
-        error_message.visible = False
         
-        global names
-        if names == 7:
-            pass
         
         
         # Clear the login page
@@ -345,7 +323,7 @@ def main(page):
         
         
         def final_validation():   #validates the scene before rendering
-            
+            print("sdfsdfsdgsgdfg")
             
             if lights == []:
                 light_error_message.value = "Please enter a light source"
@@ -379,7 +357,7 @@ def main(page):
         
         
         def render(e):   #renders the scene
-            print(f"the top control is {page.controls[0]} ")
+            print(page.controls[0])
             
             if img.src:
                 page.controls.pop(0)
@@ -392,22 +370,15 @@ def main(page):
             
             
             global scene_name
-            print(f"the scene name is {scene_name}")
-            
             if scene_name == None:
                 scene_name = "image.ppm"
                 scene_name_png = "image.png"
             else:
     
-                global names
-                
-                print(f"the names are {names}")
-                while scene_name in names:
+                if scene_name[-1] == "#" or scene_name in names:
                     scene_name = scene_name + "#"
 
-
-                if scene_name not in names:
-                    names.append(scene_name)
+                names.append(scene_name)
 
                 scene_name_png = scene_name + ".png"
                 scene_name_ppm = scene_name + ".ppm"
@@ -434,11 +405,8 @@ def main(page):
                 
                 os.remove(scene_name_ppm)   #deletes the ppm file after conversion
 
-                if User_Status:
-                    os.rename(scene_name_png, f"User_Data/{get_user_id(username.value)}/{scene_name_png}")
-                    img.src = f"User_Data/{get_user_id(username.value)}/{scene_name_png}"
-                else:
-                    img.src = scene_name_png
+                img.src = scene_name_png
+                
                 
                 print("######################")
                 for i in range(0, 101):    #loading a progress bar not accurate of the rendering speed but for decoration
@@ -487,15 +455,22 @@ def main(page):
             
             for i in range(0, 101):    #loading a progress bar not accurate of the rendering speed but for decoration
                 pb.value = i * 0.02
-                sleep(0.1) 
+                sleep(0.1)
                 page.update()
             
             
             img_viewer.content = img
+            
             page.controls.insert(0, img_tile)
-            pb.visible = False
+
+
+            
             img.visible = True
             
+            
+
+            
+            pb.visible = False
             pb.value = 0
 
             page.update()
@@ -535,11 +510,9 @@ def main(page):
             loginpage()
             page.update()
         
-        
-        
-        
-        img_carousel = ft.Row(expand=1, wrap=False, scroll="always")
-        
+        img_carousel = ft.Column(
+            [],
+        )
         
         
         def my_renders(e):
@@ -549,7 +522,9 @@ def main(page):
             image_paths = [row[0] for row in scenes]
 
             for image_path in image_paths:
-                img_carousel.controls.append(ft.Image(src=image_path, width=300, height=300, fit=ft.ImageFit.CONTAIN,))
+                img.src = image_path
+                img_viewer.content = img
+                img_carousel.controls.append(img_tile)
                 page.update()
             
             page.add(
@@ -561,10 +536,7 @@ def main(page):
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,  
                 ),
                 img_carousel,
-                main_menu_Button,
                 Sign_out_Button,
-                
-
             )
             page.update()
         
@@ -628,7 +600,6 @@ def main(page):
 
         Sign_out_Button= Fancy_Button(text="Sign Out", on_click=sign_out,)
         My_Renders_Button= Fancy_Button(text="My Renders", on_click=my_renders,)
-        main_menu_Button= Fancy_Button(text="Main Menu", on_click=switch_to_main_ui,)
         
         if User_Status == True:
             My_Renders_Button.visible = True
@@ -637,7 +608,6 @@ def main(page):
         
         
         def remove_img(e):
-            os.remove(img.src)
             img.src = None
             page.controls.pop(0)
             page.update()
@@ -645,17 +615,16 @@ def main(page):
         
         def img_to_library(e):
             
-            
+            img_path = os.path.abspath(img.src)
             
             userID = get_user_id(username.value)
             
-            create_scene(userID,img.src,scene_name)
-
-            page.add(ft.Text(f"{scene_name} added to library"))
+            create_scene(userID,img_path)
+            page.add(ft.Text(f"{img.src} added to library"))
             page.update()
             
 
-        
+            
         
         def img_showcaser(e):
             page.controls.clear()
@@ -671,9 +640,7 @@ def main(page):
                     alignment=ft.MainAxisAlignment.CENTER,
                     ),
                     
-                    main_menu_Button,
                     Sign_out_Button,
-                    
 
                 )
                 page.update()
@@ -712,8 +679,6 @@ def main(page):
             ],
             alignment=ft.MainAxisAlignment.CENTER,
         )
-
-        
         
         
       
@@ -798,15 +763,7 @@ def main(page):
     guest_button = ft.ElevatedButton(text="Continue as Guest", on_click=guest)
     
     def loginpage():
-        
-        global names 
-        names = []
-
-        page.vertical_alignment = ft.MainAxisAlignment.CENTER
-        page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    
         page.add(
-
             ft.Column(
                 [
                     ft.Text("Welcome to RayTray", size=20, weight=ft.FontWeight.BOLD),
@@ -829,10 +786,8 @@ def main(page):
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             )
         )
-
-
-
-        page.update()
+        page.vertical_alignment = ft.MainAxisAlignment.CENTER
+        page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
     loginpage()
 
