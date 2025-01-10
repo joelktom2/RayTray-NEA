@@ -402,22 +402,21 @@ def main(page):
             print(f"the scene name is {scene_name}")
             
             if scene_name == None:
-                scene_name = "image.ppm"
-                scene_name_png = "image.png"
-            else:
+                scene_name = "image"
+            
     
-                global names
-                
-                print(f"the names are {names}")
-                while scene_name in names:
-                    scene_name = scene_name + "#"
+            global names
+            
+            print(f"the names are {names}")
+            while scene_name in names:
+                scene_name = scene_name + "#"
 
 
-                if scene_name not in names:
-                    names.append(scene_name)
+            if scene_name not in names:
+                names.append(scene_name)
 
-                scene_name_png = scene_name + ".png"
-                scene_name_ppm = scene_name + ".ppm"
+            scene_name_png = scene_name + ".png"
+            scene_name_ppm = scene_name + ".ppm"
             
             current_name.value = f"Current Name: {scene_name}"
 
@@ -446,17 +445,20 @@ def main(page):
                     img.src = f"User_Data/{get_user_id(username.value)}/{scene_name_png}"
                 else:
                     img.src = scene_name_png
+        
+
+                page.update()
                 
                 print("######################")
                 for i in range(0, 101):    #loading a progress bar not accurate of the rendering speed but for decoration
                     pb.value = i * 0.02
-                    sleep(0.1)
+                    sleep(0.01)
                     page.update()
                   
                 img_viewer.content = img
                 page.controls.insert(0, img_tile)
-              
                 img.visible = True
+                page.update()
 
                 pb.visible = False
                 pb.value = 0
@@ -644,7 +646,12 @@ def main(page):
         
         
         def remove_img(e):
-            os.remove(img.src)
+            if img.src == "test_image.png":
+                pass
+            else:
+                names.remove(scene_name)
+
+            os.remove(img.src)            
             img.src = None
             page.controls.pop(0)
             page.update()
