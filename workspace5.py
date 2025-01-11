@@ -1,29 +1,35 @@
-import win32clipboard
-from PIL import Image
-import io
+import flet as ft
 
-def copy_image_to_clipboard(image_path):
+name = "CupertinoContextMenu Example"
 
-    try:
-        # Open the image file
-        image = Image.open(image_path)
 
-        # Convert the image to BMP format for clipboard compatibility
-        output = io.BytesIO()
-        image.convert("RGB").save(output, "BMP")
-        bmp_data = output.getvalue()[14:]  # Remove the BMP header
-        output.close()
 
-        # Open clipboard and set the image data
-        win32clipboard.OpenClipboard()
-        win32clipboard.EmptyClipboard()
-        win32clipboard.SetClipboardData(win32clipboard.CF_DIB, bmp_data)
-        win32clipboard.CloseClipboard()
+man=    ft.CupertinoContextMenu(
+    enable_haptic_feedback=True,
+    content=ft.Image("https://picsum.photos/200/200"),
+    actions=[
+        ft.CupertinoContextMenuAction(
+            text="Action 1",
+            is_default_action=True,
+            trailing_icon=ft.icons.CHECK,
+            on_click=lambda e: print("Action 1"),
+        ),
+        ft.CupertinoContextMenuAction(
+            text="Action 2",
+            trailing_icon=ft.icons.MORE,
+            on_click=lambda e: print("Action 2"),
+        ),
+        ft.CupertinoContextMenuAction(
+            text="Action 3",
+            is_destructive_action=True,
+            trailing_icon=ft.icons.CANCEL,
+            on_click=lambda e: print("Action 3"),
+        ),
+    ],
+)
 
-        print("Image successfully copied to the clipboard!")
-    except Exception as e:
-        print(f"Error copying image to clipboard: {e}")
+def main(page):
+    page.title = name
+    page.add(man)
 
-# Example usage
-image_file_path = "download.jpg"  # Replace with your image file path
-copy_image_to_clipboard(image_file_path)
+ft.app(main) 

@@ -6,7 +6,7 @@ from engine import engine
 from scene import Scene,camera
 from light import light
 from loginsys import create_user,login_user,get_user_id
-from scenes_table import create_scene,get_scenes,get_scene_names
+from scenes_table import create_scene,get_scenes,get_scene_names,remove_scene
  
 #3rd part libraries
 import flet as ft
@@ -496,7 +496,7 @@ def main(page):
             
             for i in range(0, 101):    #loading a progress bar not accurate of the rendering speed but for decoration
                 pb.value = i * 0.02
-                sleep(0.1) 
+                sleep(0.01) 
                 page.update()
             
             
@@ -549,16 +549,29 @@ def main(page):
         
         img_carousel = ft.Row(expand=1, wrap=False, scroll="always")
         
-        
+        def edit(src):
+            img.src = src
+            img_viewer.content = img
+            img.visible = True
+            img_showcaser(e)
         
         def my_renders(e):
             page.controls.clear()
             
             scenes = get_scenes(get_user_id(username.value))
+            
             image_paths = [row[0] for row in scenes]
-
+            print(f"the image paths are {image_paths}")
             for image_path in image_paths:
-                img_carousel.controls.append(ft.Image(src=image_path, width=300, height=300, fit=ft.ImageFit.CONTAIN,))
+                
+                
+                add = ft.Column(
+                    [ft.Image(src=image_path,width=300,height=200,fit=ft.ImageFit.CONTAIN,),
+                     ft.Text(image_path.split("/")[-1]),
+                     ft.IconButton(icon=ft.icons.EDIT_SQUARE, on_click=lambda e,source=image_paths[image_paths.index(image_path)] :edit(source)),],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,)
+                img_carousel.controls.append(add)
                 page.update()
             
             page.add(
@@ -644,17 +657,26 @@ def main(page):
         else:
             My_Renders_Button.visible = False
         
+        def remove_img_from_library(img_path):
+            userID = get_user_id(username.value)
+            remove_scene(userID,img_path)
+
+        
         
         def remove_img(e):
             if img.src == "test_image.png":
                 pass
             else:
-                names.remove(scene_name)
-
+                if scene_name in names:
+                    names.remove(scene_name)
+                if User_Status:
+                    remove_img_from_library(img.src)
+                    
             os.remove(img.src)            
             img.src = None
             page.controls.pop(0)
             page.update()
+            main_menu_Button.on_click(e)
         
         
         def img_to_library(e):
@@ -719,9 +741,10 @@ def main(page):
         
         def img_showcaser(e):
             page.controls.clear()
-            
+            print("the image is ",img.src)
             if User_Status:
                 page.add(
+                    
                     img_viewer,
                     ft.Row([
                         ft.IconButton(icon=ft.icons.ADD ,tooltip= "add to library", on_click=img_to_library),

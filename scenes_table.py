@@ -47,3 +47,9 @@ def get_scene_names(user_id):
     connection.close()
     return result
 
+def remove_scene(user_id, scene_path):
+    connection = sqlite3.connect('data.db')
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM Scenes WHERE UserID = ? AND ImagePath = ?", (user_id, scene_path))
+    connection.commit()
+    connection.close()
