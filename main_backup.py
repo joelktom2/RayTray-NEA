@@ -7,11 +7,10 @@ from scene import Scene,camera
 from light import light
 from loginsys import create_user,login_user,get_user_id
 from scenes_table import create_scene,get_scenes,get_scene_names,remove_scene
-
-
+ 
 #3rd part libraries
 import flet as ft
-from flet_contrib.color_picker import ColorPicker
+from tkinter import Tk, colorchooser
 from tkinter import Tk, filedialog
 from PIL import Image
 import re
@@ -329,6 +328,22 @@ def main(page):
             current_height.value = f"Current Height: {height_input.value}"
             page.update()
         
+            
+
+        def pick_color(e):   #presents a color picker to the user
+            
+            root = Tk()
+            root.lift()  # Brings the Tkinter root window to the front
+            root.attributes("-topmost", True)  # Ensure it's on top
+            root.withdraw()  
+            color_code = colorchooser.askcolor(title="Choose a color")[1]
+            root.destroy()  
+            if color_code:
+                nonlocal selected_color
+                selected_color = color_code
+                color_picker_button.text = f"Selected: {selected_color}" 
+                color_picker_button.bgcolor = selected_color 
+                page.update()
 
         def convert_ppm_to_png(ppm_path, png_path): #Used to convert the rendered image to a png format
             with open(ppm_path, "rb") as f:
@@ -575,9 +590,8 @@ def main(page):
             )
             page.update()
         
-        global selected_color
         selected_color = None  # Holds the selected color
-        
+
         
         
         
@@ -604,7 +618,7 @@ def main(page):
         set = MyButton(text="Set", on_click=set_name)
         object_position = ft.TextField(label="Object Position", hint_text="e.g., (x, y, z)", width=300)
         object_radius = ft.TextField(label="Object Radius", hint_text="e.g., 0.5", width=300)
-        #color_picker_button = MyButton(text="Pick Color", on_click=pick_color)
+        color_picker_button = MyButton(text="Pick Color", on_click=pick_color)
         add_cam_button = MyButton(text="Add Camera", on_click=add_cam)
         add_object_button = MyButton(text="Add Object", on_click=add_object)
         add_light_button = MyButton(text="Add Light", on_click=add_light)
@@ -634,43 +648,6 @@ def main(page):
         visible=False,
         )
 
-        def pick_color():
-            def open_color_picker(e):
-                # Add the dialog to the page overlay
-                if d not in e.control.page.overlay:
-                    e.control.page.overlay.append(d)
-                d.open = True
-                e.control.page.update()
-
-            color_picker = ColorPicker(color="#c8df6f", width=300)
-            color_icon = ft.IconButton(icon=ft.icons.BRUSH, on_click=open_color_picker)
-
-            def change_color(e):
-                color_icon.icon_color = color_picker.color
-                global selected_color
-                selected_color = color_picker.color
-                d.open = False
-                e.control.page.update()
-
-            def close_dialog(e):
-                d.open = False
-                e.control.page.update()
-
-            d = ft.AlertDialog(
-                content=color_picker,
-                actions=[
-                    ft.TextButton("OK", on_click=change_color),
-                    ft.TextButton("Cancel", on_click=close_dialog),
-                ],
-                actions_alignment=ft.MainAxisAlignment.END,
-                on_dismiss=change_color,
-            )
-
-            return color_icon
-        
-        
-        
-        
         Sign_out_Button= Fancy_Button(text="Sign Out", on_click=sign_out,)
         My_Renders_Button= Fancy_Button(text="My Renders", on_click=my_renders,)
         main_menu_Button= Fancy_Button(text="Main Menu", on_click=switch_to_main_ui,)
@@ -858,7 +835,7 @@ def main(page):
                             object_type,
                             object_position,
                             object_radius,
-                            pick_color(),
+                            color_picker_button,
                             add_object_button,
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
