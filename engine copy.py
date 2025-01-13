@@ -55,7 +55,7 @@ class engine:
     
     def color_at(self,scene,nearest,i_p):
         base_colour = nearest.colour
-        normal = nearest.get_normal(i_p)   #noraml to get_normal
+        normal = nearest.normal(i_p)
         light = scene.lights[0]
         light_dir = (light.position - i_p).norm()
         return engine.lamb(base_colour,light,normal,i_p,light_dir) #returns the colour of the object at the point of intersection
@@ -69,7 +69,6 @@ class engine:
         fcolour = colour(0,0,0) #defualt colour : black
         
         object_hit,intersect_point = self.nearest(scene,ray)
-        
         if object_hit != None:
             print((object_hit.colour))
         

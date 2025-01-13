@@ -19,7 +19,7 @@ class Sphere():
     def __str__(self):
         return f"Center: {self.center}, Radius: {self.radius}, Colour: {self.colour}"
     
-    def normal(self, point):
+    def get_normal(self, point):   #nomral to get_normal
         return (point - self.center).norm()   # returns the normal vector at a point on the sphere
     
     
@@ -40,18 +40,25 @@ class Sphere():
 
 class Plane():
     
-    def __init__(self, point, normal):
+    def __init__(self, point, normal,colour=(0,0,1),mat = [0.5,0.0,0.0]):
         self.point = point
         self.normal = normal
+        self.colour = colour        # colour of the sphere (r,g,b)
+        self.material = material(colour)  # material properties of the sphere
+        self.material.shininess = mat[0]  # shininess of the sphere
+        self.material.reflectivity = mat[1]  # reflectivity of the sphere
+        self.material.transparency = mat[2]
 
     def __str__(self):
         return "{}x + {}y + {}z = {}".format(self.normal.x, self.normal.y, self.normal.z, self.point.dp(self.normal))
 
     def intersects(self, ray):
         t = (self.point - ray.origin).dp(self.normal) / ray.direction.dp(self.normal)
+        
         if t < 0:
             return None
-        return t    # returns the point of intersection of the ray with the plane
+        return ray.point(t)   # returns the point of intersection of the ray with the plane
     
-
+    def get_normal(self, point):
+        return self.normal.norm()
 
