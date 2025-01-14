@@ -1,5 +1,6 @@
 import math
 from material import material
+from image import colour
 
 class camera():
     def __init__(self,position):
@@ -40,7 +41,7 @@ class Sphere():
 
 class Plane():
     
-    def __init__(self, point, normal,colour=(0,0,1),mat = [0.5,0.0,0.0]):
+    def __init__(self, point, normal,colour=colour(0,0,1),mat = [0.5,0.0,0.0]):
         self.point = point
         self.normal = normal
         self.colour = colour        # colour of the sphere (r,g,b)

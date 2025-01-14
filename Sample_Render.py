@@ -31,7 +31,7 @@ s1 = Sphere(Vector(4,3,5), 0.5, colour(0,1,0))
 p1 = Plane(Vector(0,5,0),Vector(0,1,0))
 
 objects = []
-objects.append(s1)
+objects.append(p1)
 
 l1 = light(Vector(0,0,0),colour(1,1,1)) 
 
