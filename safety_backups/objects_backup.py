@@ -11,7 +11,10 @@ class Sphere():
         self.center = center       # (x,y,z) coordinates of the center of the sphere
         self.radius = radius       # radius of the sphere integer 
         self.colour = colour        # colour of the sphere (r,g,b)
-        self.material = material(colour,mat[0],mat[1],mat[2])  # material properties of the sphere
+        self.material = material(colour)  # material properties of the sphere
+        self.material.shininess = mat[0]  # shininess of the sphere
+        self.material.reflectivity = mat[1]  # reflectivity of the sphere
+        self.material.transparency = mat[2]  # transparency of the sphere
 
 
     def __str__(self):

@@ -12,7 +12,7 @@ from scenes_table import create_scene,get_scenes,get_scene_names,remove_scene
 #3rd part libraries
 import flet as ft
 from flet_contrib.color_picker import ColorPicker
-from flet import FilePicker, FilePickerResultEvent
+from tkinter import Tk, filedialog
 from PIL import Image
 import re
 from time import sleep
@@ -718,30 +718,26 @@ def main(page):
 
         def download_file(file_path):
     
-            
-            
-            def directory_picker_result(e: FilePickerResultEvent):
-                if e.path:
-                    shutil.copy(file_path, e.path)
-                    print(f"Selected directory: {e.path}")
-                else:
-                    print("No directory selected")
-                
-                page.update()
-            
-            
-            file_picker = FilePicker(on_result=directory_picker_result)
-            page.add(file_picker)
-            file_picker.get_directory_path(dialog_title="Select Directory")
+            # Initialize Tkinter and hide the root window
+            root = Tk()
+            root.withdraw()
+            root.attributes('-topmost', True)  # Bring file dialog to the front
 
-            page.overlay.append(file_picker)
+            # Ask user to choose a destination folder
+            destination_folder = filedialog.askdirectory(title="Select Destination Folder")
+            if not destination_folder:
+                print("No destination folder selected. Operation cancelled.")
+                return
 
-            file_picker.get_directory_path(dialog_title="Select Directory")
-            page.update()
+            # Extract the file name and copy the file to the selected folder
+            file_name = file_path.split('/')[-1]
+            destination_path = f"{destination_folder}/{file_name}"
 
-       
-
-        
+            try:
+                shutil.copy(file_path, destination_path)
+                print(f"File downloaded successfully to: {destination_path}")
+            except Exception as e:
+                print(f"An error occurred while copying the file: {e}")
 
 
         def copy_image_to_clipboard(image_path):
@@ -791,8 +787,8 @@ def main(page):
                 page.add(
                     img_viewer,
                     ft.Row([
-                        ft.IconButton(icon=ft.icons.DOWNLOAD ,tooltip= "download", on_click=lambda e: download_file(img.src)),
-                        ft.IconButton(icon=ft.icons.CONTENT_COPY ,tooltip= "Copy", on_click= lambda e: copy_image_to_clipboard(img.src)),
+                        ft.IconButton(icon=ft.icons.DOWNLOAD ,tooltip= "download", on_click=None),
+                        ft.IconButton(icon=ft.icons.SHARE ,tooltip= "Share", on_click=None),
                         ft.IconButton(icon=ft.icons.DELETE ,tooltip= "delete", on_click=remove_img),],    
                     alignment=ft.MainAxisAlignment.CENTER,
                     ),
