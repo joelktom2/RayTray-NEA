@@ -14,7 +14,6 @@ import flet as ft
 from flet_contrib.color_picker import ColorPicker
 from flet import FilePicker, FilePickerResultEvent
 from PIL import Image
-import numpy as np
 import re
 from time import sleep
 import os
@@ -124,8 +123,7 @@ def main(page):
     
     
     def switch_to_main_ui(e):
-        page_tracker = "main"
-        
+
         error_message.visible = False
         
         global names
@@ -305,10 +303,7 @@ def main(page):
                 
                 position_parts = object_position.value.split(",")
                 x, y, z = map(int, position_parts)
-                obj_material = [float(Diffuse_input.text_field.value),float(Specular_input.text_field.value),float(Ambient_input.text_field.value)] 
-                
-                myobj1 = Sphere(Vector(x, y, z), float(object_radius.value), colour.hex_to_rgb(selected_color),obj_material)
-                
+                myobj1 = Sphere(Vector(x, y, z), float(object_radius.value), colour.hex_to_rgb(selected_color))
                 scene_objects.append(myobj1)
                 
                 
@@ -360,11 +355,11 @@ def main(page):
             page.update()
 
         class IntField(ft.Container):
-            def __init__(self,name,min,max,default="0.0"):
+            def __init__(self, name,min,max):
                 super().__init__()
                 self.text_field = ft.TextField(
                     label=str(name),
-                    value=default,
+                    value="0",
                     text_align=ft.TextAlign.RIGHT,
                     width=80
                 )
@@ -389,41 +384,11 @@ def main(page):
         
         
         
-        def convert_ppm_to_png(ppm_path, png_path):
+        def convert_ppm_to_png(ppm_path, png_path): #Used to convert the rendered image to a png format
             with open(ppm_path, "rb") as f:
-                header = f.readline().strip()  # Read the magic number (P6 or P3)
-                dimensions = f.readline().strip()  # Read the width and height
-                maxval = int(f.readline().strip())  # Read the maximum color value
-
-                # Parse dimensions
-                width, height = map(int, dimensions.split())
-
-                if header == b"P6":
-                    # Binary PPM
-                    dtype = "uint8" if maxval <= 255 else "uint16"
-                    image_data = np.fromfile(f, dtype=dtype)
-
-                    if maxval > 255:
-                        image_data = (image_data / maxval * 255).astype("uint8")
-
-                    # Reshape the binary data
-                    image_data = image_data.reshape((height, width, 3))
-
-                elif header == b"P3":
-                    # ASCII PPM
-                    data = f.read().decode("ascii").split()
-                    image_data = np.array(data, dtype=int).reshape((height, width, 3))
-
-                    if maxval > 255:
-                        image_data = (image_data / maxval * 255).astype("uint8")
-
-                else:
-                    # Unsupported format
-                    raise ValueError("Unsupported PPM format. Only P3 (ASCII) and P6 (binary) are supported.")
-
-            # Convert the data to a PIL Image and save as PNG
-            image = Image.fromarray(image_data.astype("uint8"), mode="RGB")
-            image.save(png_path, "PNG")
+                image = Image.open(f)
+                image.save(png_path, "PNG")
+        
         
         def final_validation():   #validates the scene before rendering
             
@@ -693,9 +658,7 @@ def main(page):
         set = MyButton(text="Set", on_click=set_name)
         object_position = ft.TextField(label="Object Position", hint_text="e.g., (x, y, z)", width=150)
         object_radius = ft.TextField(label="Object Radius", hint_text="e.g., 0.5", width=150)
-        Ambient_input = IntField("Ambient",0,1)
-        Diffuse_input = IntField("Diffuse",0,1,0.5)
-        Specular_input = IntField("Specular",0,1,0.5)
+        #color_picker_button = MyButton(text="Pick Color", on_click=pick_color)
         add_cam_button = MyButton(text="Add Camera", on_click=add_cam)
         add_object_button = MyButton(text="Add Object", on_click=add_object)
         add_light_button = MyButton(text="Add Light", on_click=add_light)
@@ -790,8 +753,7 @@ def main(page):
             img.src = None
             page.controls.pop(0)
             page.update()
-            if page_tracker != "main":
-                main_menu_Button.on_click(e)
+            main_menu_Button.on_click(e)
         
         
         def img_to_library(e):
@@ -860,7 +822,6 @@ def main(page):
         
         def img_showcaser(e):
             page.controls.clear()
-            page_tracker = "showcaser"
             print("the image is ",img.src)
             if User_Status:
                 page.add(
@@ -955,10 +916,10 @@ def main(page):
                             object_type,
                             object_position,
                             object_radius,
-                            Diffuse_input,
-                            Specular_input,
-                            Ambient_input,
-
+                            IntField("Diffuse",0,1),
+                            IntField("Specular",0,1),
+                            IntField("Ambient",0,1),
+                            
                             pick_color(),
                             add_object_button,
                         ],
