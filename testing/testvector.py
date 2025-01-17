@@ -1,5 +1,9 @@
 import unittest
-from Maths import Vector  
+import sys
+sys.path.append("..") 
+from ..Maths import Vector
+#from ..RayTray - NEA\Maths.py" import Vector
+from ... import Vector
 
 class TestVectorOperations(unittest.TestCase):
     def test_add_vectors(self):
