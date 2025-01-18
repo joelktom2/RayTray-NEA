@@ -1,4 +1,5 @@
 import math
+
 class Vector():    
     def __init__(self, x, y , z):
         self.x = x
@@ -10,7 +11,12 @@ class Vector():
     
     def values(self):
         list = [self.x,self.y,self.z]
-        print(list)    
+        print(list)
+
+    def __eq__(self, other):
+        if isinstance(other, Vector):
+            return self.x == other.x and self.y == other.y and self.z == other.z
+        return False    
 
     def __add__(self,v2):
         return Vector((self.x+v2.x),(self.y+v2.y),(self.z+v2.z))
@@ -18,6 +24,10 @@ class Vector():
     def __sub__(self,v2):
         return Vector((self.x-v2.x),(self.y-v2.y),(self.z-v2.z))
          
+    def __neg__(self):
+        return Vector(-self.x, -self.y, -self.z)
+    
+    
     def __mul__(self,scale):
         return Vector((self.x)*scale,(self.y)*scale,(self.z)*scale)
         

@@ -1,13 +1,11 @@
-import flet as ft
+from Maths import Vector
 
 
-def main(page: ft.Page):
-    
-    def minus_click(e):
-        print(e)
+v1 = Vector(1, -2, 3)
+v2 = Vector(1, -2, 3)
 
-    page.add(
-        ft.IconButton(ft.icons.REMOVE, on_click=lambda e: minus_click("bingo")),
-    )
+if v1 == v2:
+    print("equal")
 
-ft.app(main)
+else:
+    print("£$")
