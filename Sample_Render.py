@@ -25,7 +25,7 @@ def main(user_scene):
 #initialized variables for scene ,constant for simplicity for now
 width = 300
 height = 200
-myobj = Sphere(Vector(0, 0, 4), 2.0, colour(1,0,0),[0.8, 0.5, 0.2])
+myobj = Sphere(Vector(0, 0, 4), 2.0, colour(0.16,0.72,0.73),[0.8, 0.5, 0.2])
 
 
 mycam = camera(Vector(0, -0.35, -1))

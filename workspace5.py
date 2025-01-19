@@ -1,11 +1,6 @@
-from Maths import Vector
+import flet as ft
 
+def main(page: ft.Page):
+    ft.Image()
 
-v1 = Vector(1, -2, 3)
-v2 = Vector(1, -2, 3)
-
-if v1 == v2:
-    print("equal")
-
-else:
-    print("£$")
+ft.app(main)

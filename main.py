@@ -21,7 +21,8 @@ import os
 import shutil
 import win32clipboard
 import io
-
+from time import time  # Add this import at the top of the file
+from datetime import datetime
 
 
 def main(page):
@@ -128,9 +129,9 @@ def main(page):
         
         error_message.visible = False
         
-        global names
-        if names == 7:
-            pass
+        
+        
+        
         
         
         # Clear the login page
@@ -138,8 +139,6 @@ def main(page):
         
         img = ft.Image(
             src=None,  # Initialize with no image source
-            width=300,
-            height=300,
             fit=ft.ImageFit.CONTAIN,
             visible=False,  # Hide the image initially
         )
@@ -193,7 +192,7 @@ def main(page):
 
        
         def validcoord(value):
-            if re.fullmatch(r'-?\d+,-?\d+,-?\d+', value):
+            if re.fullmatch(r'-?\d+(\.\d+)?,-?\d+(\.\d+)?,-?\d+(\.\d+)?', value):
                 return True
             return False
         
@@ -225,7 +224,7 @@ def main(page):
             if validcoord(light_pos.value):
                 light_error_message.visible = False
                 position_parts = light_pos.value.split(",")
-                x, y, z = map(int, position_parts)
+                x, y, z = map(float, position_parts)
                 mylight = light(Vector(x, y, z),colour(1,1,1))
                 lights.append(mylight)
 
@@ -255,7 +254,7 @@ def main(page):
             if validcoord(cam_pos.value):
                 cam_error_message.visible = False
                 cam_parts = cam_pos.value.split(",")
-                x, y, z = map(int, cam_parts)
+                x, y, z = map(float, cam_parts)
                 global scene_camera
                 scene_camera = camera(Vector(x, y, z))
                 added_cam.controls.append(
@@ -304,7 +303,7 @@ def main(page):
                 obj_error_message.visible = False
                 
                 position_parts = object_position.value.split(",")
-                x, y, z = map(int, position_parts)
+                x, y, z = map(float, position_parts)
                 obj_material = [float(Diffuse_input.text_field.value),float(Specular_input.text_field.value),float(Ambient_input.text_field.value)] 
                 
                 myobj1 = Sphere(Vector(x, y, z), float(object_radius.value), colour.hex_to_rgb(selected_color),obj_material)
@@ -459,88 +458,181 @@ def main(page):
                 return True
         
         
-        def render(e):   #renders the scene
-            print(f"the top control is {page.controls[0]} ")
+        # def render(e):   #renders the scene
+        #     if User_Status:
+        #         global names
+        #         names = [row[0] for row in (get_scene_names(get_user_id(username.value)))]
             
+        #     print(f"the top control is {page.controls[0]} ")
+            
+        #     if img.src:
+        #         page.controls.pop(0)
+        #         img.src = None
+            
+        #     img.src = None
+        #     page.update()
+            
+        #     global scene_name
+        #     print(f"the scene name is {scene_name}")
+            
+        #     if scene_name == None:
+        #         scene_name = "image"
+            
+        #     print(f"the names are {names}")
+        #     while scene_name in names:
+        #         scene_name = scene_name + "#"
+
+        #     scene_name_png = scene_name + +".png"
+        #     scene_name_ppm = scene_name + ".ppm"
+            
+        #     current_name.value = f"Current Name: {scene_name}"
+
+        #     if final_validation() == False:
+        #         pass
+        #     else:
+        #         scene_error_message.visible = False
+        #         pb.visible = True
+        #         pb.value = 0
+                
+        #         scene_width = int(width_input.value)
+        #         scene_height = int(height_input.value)
+        #         user_scene = Scene(scene_objects,scene_camera,scene_width,scene_height,lights)  
+                
+        #         Engine = engine()
+        #         image = Engine.render(user_scene)
+        #         with open(scene_name_ppm, "w") as img_file:
+        #             image.write_ppm(img_file)
+
+        #         convert_ppm_to_png(scene_name_ppm, scene_name_png)
+                
+        #         os.remove(scene_name_ppm)   #deletes the ppm file after conversion
+
+        #         print(f"User : {User_Status}")
+                
+        #         if User_Status:
+        #             os.rename(scene_name_png, f"User_Data/{get_user_id(username.value)}/{scene_name_png}")
+        #             img.src = f"User_Data/{get_user_id(username.value)}/{scene_name_png}?t={int(time())}"
+        #         else:
+        #             img.src = f"{scene_name_png}?t={int(time())}"
+        #             print(img.src)
+                
+                
+        #         page.update()
+                
+        #         print("######################")
+        #         for i in range(0, 101):    #loading a progress bar not accurate of the rendering speed but for decoration
+        #             pb.value = i * 0.02
+        #             sleep(0.01)
+        #             page.update()
+                  
+                
+                
+        #         page.controls.insert(0, img_tile)
+                
+        #         img.visible = True
+                
+        #         page.update()
+        #         img.update()
+        #         img_viewer.update()
+        #         img_tile.update()
+        #         pb.visible = False
+        #         pb.value = 0
+                
+                
+                
+        #         page.update()
+
+        def render(e):  # Renders the scene
+            global scene_name, names
+            
+            # Update the scene names if the user is logged in
+            if User_Status:
+                user_id = get_user_id(username.value)
+                names = [row[0] for row in get_scene_names(user_id)]
+            else:
+                names = []
+            
+            print(f"The top control is {page.controls[0]}")
+
+            # Clear previous image if exists
             if img.src:
                 page.controls.pop(0)
                 img.src = None
-            
-            img.src = None
+                page.update()
 
-            page.update()
-            
-            
-            
-            global scene_name
-            print(f"the scene name is {scene_name}")
-            
-            if scene_name == None:
-                scene_name = "image"
-            
-    
-            global names
-            
-            print(f"the names are {names}")
-            while scene_name in names:
-                scene_name = scene_name + "#"
+            scene_name_ts = ""
+            scene_name = scene_name or "image"
 
-
-            if scene_name not in names:
-                names.append(scene_name)
-
-            scene_name_png = scene_name + ".png"
-            scene_name_ppm = scene_name + ".ppm"
+            # Add timestamp to the scene name
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             
-            current_name.value = f"Current Name: {scene_name}"
-
-            if final_validation() == False:
-                pass
+            if User_Status:
+                scene_name_ts = f"{scene_name}_{user_id}_{timestamp}"
             else:
-                scene_error_message.visible = False
-                pb.visible = True
-                pb.value = 0
-                
-                scene_width = int(width_input.value)
-                scene_height = int(height_input.value)
-                user_scene = Scene(scene_objects,scene_camera,scene_width,scene_height,lights)  
-                
-                Engine = engine()
-                image = Engine.render(user_scene)
-                with open(scene_name_ppm, "w") as img_file:
-                    image.write_ppm(img_file)
+                scene_name_ts = f"{scene_name}_{timestamp}"
 
-                convert_ppm_to_png(scene_name_ppm, scene_name_png)
-                
-                os.remove(scene_name_ppm)   #deletes the ppm file after conversion
+            while scene_name in names:
+                scene_name += "#"
 
-                if User_Status:
-                    os.rename(scene_name_png, f"User_Data/{get_user_id(username.value)}/{scene_name_png}")
-                    img.src = f"User_Data/{get_user_id(username.value)}/{scene_name_png}"
-                else:
-                    img.src = scene_name_png
-        
+            scene_name_png = f"{scene_name_ts}.png"
+            scene_name_ppm = f"{scene_name_ts}.ppm"
+            
 
+            current_name.value = f"Current Name: {scene_name}"
+            print(f"Scene name: {scene_name}")
+            print(f"Scene names: {names}")
+
+            if not final_validation():
+                return
+
+            # Prepare for rendering
+            scene_error_message.visible = False
+            pb.visible = True
+            pb.value = 0
+
+            scene_width = int(width_input.value)
+            scene_height = int(height_input.value)
+            user_scene = Scene(scene_objects, scene_camera, scene_width, scene_height, lights)
+
+            # Render the scene
+            Engine = engine()
+            image = Engine.render(user_scene)
+            with open(scene_name_ppm, "w") as img_file:
+                image.write_ppm(img_file)
+
+            convert_ppm_to_png(scene_name_ppm, scene_name_png)
+            os.remove(scene_name_ppm)  # Delete the PPM file after conversion
+
+            print(f"User: {User_Status}")
+
+            # Save image to user directory if logged in
+            # if User_Status:
+            #     user_dir = f"User_Data/{user_id}"
+            #     os.rename(scene_name_png, f"{user_dir}/{scene_name_png}")
+            #     img.src = scene_name_png
+            # else:
+            #     img.src = scene_name_png
+            
+            img.src = scene_name_png
+            print(img.src)
+
+            # Show loading progress bar (decorative)
+            for i in range(101):
+                pb.value = i * 0.02
+                sleep(0.01)
                 page.update()
-                
-                print("######################")
-                for i in range(0, 101):    #loading a progress bar not accurate of the rendering speed but for decoration
-                    pb.value = i * 0.02
-                    sleep(0.01)
-                    page.update()
-                  
-                img_viewer.content = img
-                page.controls.insert(0, img_tile)
-                img.visible = True
-                page.update()
 
-                pb.visible = False
-                pb.value = 0
-                
-                
-                
-                page.update()
+            # Update UI with the rendered image
+            page.controls.insert(0, img_tile)
+            img.visible = True
+            page.update()
+            img.update()
+            img_viewer.update()
+            img_tile.update()
 
+            pb.visible = False
+            pb.value = 0
+            page.update()
 
                 
         
@@ -576,6 +668,7 @@ def main(page):
             
             img_viewer.content = img
             page.controls.insert(0, img_tile)
+            
             pb.visible = False
             img.visible = True
             
@@ -595,8 +688,15 @@ def main(page):
         def set_name(e):   #sets the name of the render
             if validate_name(render_name.value):
                 name_error_message.visible = False
-                if render_name.value[-1] == "#" or render_name.value in names:
-                    render_name.value = render_name.value + "#"
+                
+                
+                if User_Status:
+                    global names
+                    names = [row[0] for row in (get_scene_names(get_user_id(username.value)))]
+                    print(names)
+                
+                    while render_name.value in names:
+                        render_name.value = render_name.value + "#"
                 
                 
                 global scene_name
@@ -778,14 +878,16 @@ def main(page):
         
         
         def remove_img(e):
-            if img.src == "test_image.png":
-                pass
-            else:
+
+            
+            
+            if User_Status:
+                global names
+                names = [row[0] for row in (get_scene_names(get_user_id(username.value)))]
                 if scene_name in names:
-                    names.remove(scene_name)
-                if User_Status:
                     remove_img_from_library(img.src)
                     
+
             os.remove(img.src)            
             img.src = None
             page.controls.pop(0)
