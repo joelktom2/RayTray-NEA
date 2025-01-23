@@ -41,11 +41,15 @@ class engine:
             i_p = x.intersects(ray)
             if i_p == None:
                 continue
-            nd = (cam - i_p).mag
+            nd = (cam - i_p).mag()
+            #print(nd) 
+            #print(d)
+            
             if d == 0:
                 d = nd
                 nearest = x
                 nearesti_p = i_p
+            
             elif nd < d:
                 d = nd
                 nearest = x
@@ -105,21 +109,36 @@ class engine:
         return base_colour * (ambient_intensity + diffuse_intensity + specular_intensity)
 
     
+    def reflect(self,ray,normal,point):
+        d = ray.direction
+        n = normal
+        #print(d.dp(n))
+        #print(n)
+        return Ray(point, (d - (n * 2 * d.dp(n))) )
     
-    def ray_trace(self,ray,scene):
+    
+    def ray_trace(self,ray,scene,depth = 0):
+        MAX_DEPTH = 3
+        
         fcolour = colour(0,0,0) #defualt colour : black
         
         object_hit,intersect_point = self.nearest(scene,ray)
         
-        if object_hit != None:
-            #print((object_hit.colour))
-            pass
+        # if object_hit != None:
+        #     #print((object_hit.colour))
+        #     pass
         
         if object_hit == None or intersect_point == None:
             return fcolour
         
                 
         fcolour = self.color_at(scene,object_hit,intersect_point) # returns the colour of the object at the point of intersection
+        
+        if object_hit.material.reflectivity > 0 and depth < MAX_DEPTH:
+            depth += 1
+            reflected_ray = self.reflect(ray,object_hit.get_normal(intersect_point),intersect_point)
+            fcolour = self.ray_trace(reflected_ray,scene,depth+1) * object_hit.material.reflectivity
+        
         #print(fcolour)
         
         # if object_hit:

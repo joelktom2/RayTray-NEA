@@ -25,16 +25,19 @@ def main(user_scene):
 #initialized variables for scene ,constant for simplicity for now
 width = 300
 height = 200
-myobj = Sphere(Vector(0, 0, 4), 2.0, colour(0.16,0.72,0.73),[0.8, 0.5, 0.2])
+
+myobj = Sphere(Vector(0, -0.25, 1), 0.25, colour(0,0,1),[0.8, 0.5, 0.2,0.4])
 
 
 mycam = camera(Vector(0, -0.35, -1))
-s1 = Sphere(Vector(0,0,2), 0.5, colour(0,1,0))
+s1 = Sphere(Vector(0,0,2), 0.5, colour(0,0,1))
 p1 = Plane(Vector(0,3,0),Vector(0,-1,0))
-ls = Sphere(Vector(0,10000.5,1), 10000, colour(0,0,1))
+ls = Sphere(Vector(0,10000.5,1), 10000, colour(0,1,0))
 
 objects = []
+objects.append(ls)
 objects.append(myobj)
+#objects.append(s1)
 
 l1 = light(Vector(0,0,1),colour(1,1,1)) 
 

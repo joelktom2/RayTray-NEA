@@ -44,8 +44,7 @@ class Vector():
         return math.sqrt(((self.x)**2+(self.y)**2+(self.z)**2))
 
     def norm(self):
-        m = self.mag()
-        return self/m
+        return self/self.mag()
         
     
     def angle(self,v2):
