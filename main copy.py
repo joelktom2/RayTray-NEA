@@ -304,10 +304,9 @@ def main(page):
                 
                 position_parts = object_position.value.split(",")
                 x, y, z = map(int, position_parts)
-                obj_material = [float(Diffuse_input.text_field.value),float(Specular_input.text_field.value),float(Ambient_input.text_field.value),float(reflectivity_input.text_field.value)] 
+                obj_material = [float(Diffuse_input.text_field.value),float(Specular_input.text_field.value),float(Ambient_input.text_field.value)] 
                 
-                
-                myobj1 = globals()[object_type.value](Vector(x, y, z), float(object_radius.value), colour.hex_to_rgb(selected_color),obj_material)
+                myobj1 = Sphere(Vector(x, y, z), float(object_radius.value), colour.hex_to_rgb(selected_color),obj_material)
                 
                 scene_objects.append(myobj1)
                 
@@ -359,40 +358,6 @@ def main(page):
             
             page.update()
 
-        
-        
-        
-        
-        def add_material(material,colour_check): 
-            material_tile.visible = False
-            
-            material_colour = {
-
-            }
-            
-            material_coeffs = {
-                "Plastic": [0.6,0.2,0.2,0.1],
-                }
-            
-            print(f"the material is {material}")
-            Diffuse_input.text_field.value = str(material_coeffs[material][0])
-            Specular_input.text_field.value = str(material_coeffs[material][1])
-            Ambient_input.text_field.value = str(material_coeffs[material][2])
-            reflectivity_input.text_field.value = str(material_coeffs[material][3])
-            
-            if colour_check:
-                colour_button.visible = False
-                global selected_color
-                selected_color = material_colour[material]
-                
-            page.update()
-
-
-        def add_material_tile(e):
-            material_tile.visible = True
-            page.update()
-        
-  
         class IntField(ft.Container):
             def __init__(self,name,min,max,default="0.0"):
                 super().__init__()
@@ -400,7 +365,7 @@ def main(page):
                     label=str(name),
                     value=default,
                     text_align=ft.TextAlign.RIGHT,
-                    width=90
+                    width=80
                 )
                 self.content = ft.Row(
                     [
@@ -714,29 +679,9 @@ def main(page):
         Ambient_input = IntField("Ambient",0,1)
         Diffuse_input = IntField("Diffuse",0,1,0.5)
         Specular_input = IntField("Specular",0,1,0.5)
-        reflectivity_input = IntField("Reflectivity",0,1)
-        
-        material_type = ft.Dropdown(
-            label= "Material Type",
-            options=[ (ft.dropdown.Option("Plastic",on_click= lambda e: add_material(material_type.value,False))) , (ft.dropdown.Option("Custom", on_click= add_material_tile)) ],
-            width=150,
-        )
-        
-        
-        material_tile = ft.Row(
-            [Diffuse_input,Specular_input,Ambient_input,reflectivity_input],
-
-        )
-        material_tile.visible = False
-        
-        
-        
         add_cam_button = MyButton(text="Add Camera", on_click=add_cam)
         add_object_button = MyButton(text="Add Object", on_click=add_object)
         add_light_button = MyButton(text="Add Light", on_click=add_light)
-        
-        
-        
         light_error_message = ft.Text(
         "",
         color= ft.colors.RED,
@@ -798,7 +743,7 @@ def main(page):
             return color_icon
         
         
-        colour_button = pick_color()
+        
         
         Sign_out_Button= Fancy_Button(text="Sign Out", on_click=sign_out,)
         My_Renders_Button= Fancy_Button(text="My Renders", on_click=my_renders,)
@@ -993,10 +938,11 @@ def main(page):
                             object_type,
                             object_position,
                             object_radius,
-                            material_tile,
+                            Diffuse_input,
+                            Specular_input,
+                            Ambient_input,
 
-                            material_type,
-                            colour_button,
+                            pick_color(),
                             add_object_button,
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,

@@ -112,8 +112,6 @@ class engine:
     def reflect(self,ray,normal,point):
         d = ray.direction
         n = normal
-        #print(d.dp(n))
-        #print(n)
         return Ray(point, (d - (n * 2 * d.dp(n))) )
     
     
