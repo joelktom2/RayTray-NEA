@@ -305,7 +305,7 @@ def main(page):
                 position_parts = object_position.value.split(",")
                 x, y, z = map(int, position_parts)
                 obj_material = [float(Diffuse_input.text_field.value),float(Specular_input.text_field.value),float(Ambient_input.text_field.value),float(reflectivity_input.text_field.value)] 
-                
+                print(obj_material)
                 
                 myobj1 = globals()[object_type.value](Vector(x, y, z), float(object_radius.value), colour.hex_to_rgb(selected_color),obj_material)
                 
@@ -371,7 +371,7 @@ def main(page):
             }
             
             material_coeffs = {
-                "Plastic": [0.6,0.2,0.2,0.1],
+                "Plastic": [0.6,0.2,0.2,0.0],
                 }
             
             print(f"the material is {material}")
@@ -683,7 +683,7 @@ def main(page):
             page.update()
         
         global selected_color
-        selected_color = None  # Holds the selected color
+        selected_color = None  # Holds the selected colorrender
         
         
         
@@ -718,7 +718,7 @@ def main(page):
         
         material_type = ft.Dropdown(
             label= "Material Type",
-            options=[ (ft.dropdown.Option("Plastic",on_click= lambda e: add_material(material_type.value,False))) , (ft.dropdown.Option("Custom", on_click= add_material_tile)) ],
+            options=[ (ft.dropdown.Option("Plastic",on_click= lambda e: add_material("Plastic",False))) , (ft.dropdown.Option("Custom", on_click= add_material_tile)) ],
             width=150,
         )
         

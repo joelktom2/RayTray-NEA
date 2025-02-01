@@ -26,7 +26,7 @@ def main(user_scene):
 width = 300
 height = 200
 
-myobj = Sphere(Vector(0, -0.25, 1), 0.25, colour(0,0,1),[0.8, 0.5, 0.2,0.4])
+myobj = Sphere(Vector(0, 0, 5), 1.5, colour(0,0,1),[0.6,0.2,0.2,0.0])   #low reflection val dont work now
 
 
 mycam = camera(Vector(0, -0.35, -1))
@@ -35,7 +35,7 @@ p1 = Plane(Vector(0,3,0),Vector(0,-1,0))
 ls = Sphere(Vector(0,10000.5,1), 10000, colour(0,1,0))
 
 objects = []
-objects.append(ls)
+#objects.append(ls)
 objects.append(myobj)
 #objects.append(s1)
 
