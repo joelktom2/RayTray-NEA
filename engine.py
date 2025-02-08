@@ -69,7 +69,11 @@ class engine:
         
         ##print(f"light dir : {light_dir}")
         ##print(normal)
-        return engine.Blinn_Phong(base_colour,light_intensity,normal,i_p,light_dir,nearest,camera)       #returns the colour of the object at the point of intersection
+        
+        intesity = engine.Blinn_Phong(light_intensity,normal,i_p,light_dir,nearest,camera)
+        colour  =  base_colour * intesity
+        
+        return colour     #returns the colour of the object at the point of intersection
     
     def lamb(light_intensity,normal,light_dir,diffuse):
         #print(f"base : {base_colour}")
@@ -84,7 +88,7 @@ class engine:
     def ambient(light_intesity,ambient):
         return ambient * light_intesity
 
-    def Blinn_Phong(base_colour,light_intensity,normal,i_p,light_dir,nearest,camera):
+    def Blinn_Phong(light_intensity,normal,i_p,light_dir,nearest,camera):
         specular = nearest.material.specular
         ambient = nearest.material.ambient
         diffuse = nearest.material.diffuse
@@ -106,7 +110,7 @@ class engine:
         specular_intensity = clamp(specular_intensity,0,1)
 
 
-        return base_colour * (ambient_intensity + diffuse_intensity + specular_intensity)
+        return (ambient_intensity + diffuse_intensity + specular_intensity)
 
     
     def reflect(self,ray,normal,point):
@@ -130,12 +134,12 @@ class engine:
             return fcolour
         
                 
-        fcolour = self.color_at(scene,object_hit,intersect_point) # returns the colour of the object at the point of intersection
+        fcolour += self.color_at(scene,object_hit,intersect_point) # returns the colour of the object at the point of intersection
         
         if object_hit.material.reflectivity > 0 and depth < MAX_DEPTH:
             depth += 1
             reflected_ray = self.reflect(ray,object_hit.get_normal(intersect_point),intersect_point)
-            fcolour = self.ray_trace(reflected_ray,scene,depth+1) * object_hit.material.reflectivity
+            fcolour += self.ray_trace(reflected_ray,scene,depth+1) * (object_hit.material.reflectivity)
         
         #print(fcolour)
         

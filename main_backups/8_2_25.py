@@ -186,7 +186,7 @@ def main(page):
                 self.color = ft.colors.GREEN_800
                 self.text = text
                 self.on_click = on_click
-                self.width = 500
+                self.width = 800
                 self.height = 50
                 self.weight = ft.FontWeight.BOLD
 
@@ -372,9 +372,6 @@ def main(page):
             
             material_coeffs = {
                 "Plastic": [0.6,0.2,0.2,0.0],
-                "Matte" : [0.8,0.1,0.1,0.0],
-                "Glossy" : [0.8,0.5,0.1,0.3],
-
                 }
             
             print(f"the material is {material}")
@@ -608,17 +605,7 @@ def main(page):
             page.update()
 
         
-        def testy(e):
-            render_name.value = "Testy"
-            light_pos.value = "0,0,0"
-            cam_pos.value = "0,0,-1"
-            width_input.value = "300"
-            height_input.value = "200"
-            object_position.value = "0,0,5"
-            object_radius.value = 0.5
-            page.update()
-
-                
+        
         
         
         def validate_name(value):   #validates the name of the render
@@ -731,10 +718,7 @@ def main(page):
         
         material_type = ft.Dropdown(
             label= "Material Type",
-            options=[(ft.dropdown.Option("Plastic",on_click= lambda e: add_material("Plastic",False) ) ) , 
-                    (ft.dropdown.Option("Matte",on_click= lambda e: add_material("Matte",False) ) ),
-                    (ft.dropdown.Option("Glossy",on_click= lambda e: add_material("Glossy",False) ) ),
-                    (ft.dropdown.Option("Custom", on_click= add_material_tile)) ],
+            options=[ (ft.dropdown.Option("Plastic",on_click= lambda e: add_material("Plastic",False))) , (ft.dropdown.Option("Custom", on_click= add_material_tile)) ],
             width=150,
         )
         
@@ -1024,7 +1008,7 @@ def main(page):
                     ft.Row([R_Button(text="Render", on_click=render)], alignment=ft.MainAxisAlignment.CENTER),
                     scene_error_message,
                     ft.Row([Sign_out_Button,R_Button(text="Test Render", on_click=test_render),My_Renders_Button], alignment=ft.MainAxisAlignment.CENTER),
-                    ft.Row([R_Button(text="Testy", on_click=testy)], alignment=ft.MainAxisAlignment.CENTER),
+                    
                     
                 
                 ],

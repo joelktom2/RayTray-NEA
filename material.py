@@ -1,5 +1,5 @@
 class material():
-    def __init__(self, color, diffuse=0.5,specular=0.5, ambient=0.0, reflectivity=0.0):
+    def __init__(self, color, diffuse,specular, ambient, reflectivity=0.0):
         self.color = color  # Color of the material
         self.specular = specular 
         self.diffuse = diffuse  

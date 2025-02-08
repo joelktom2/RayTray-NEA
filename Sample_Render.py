@@ -26,7 +26,7 @@ def main(user_scene):
 width = 300
 height = 200
 
-myobj = Sphere(Vector(0, 0, 5), 1.5, colour(0,0,1),[0.6,0.2,0.2,0.0])   #low reflection val dont work now
+myobj = Sphere(Vector(0, 0, 5), 1.5, colour(0,0,1),[0.6,0.2,0.2,0.4])   #low reflection val dont work now
 
 
 mycam = camera(Vector(0, -0.35, -1))
