@@ -7,6 +7,7 @@ from scene import Scene,camera
 from light import light
 from loginsys import create_user,login_user,get_user_id
 from scenes_table import create_scene,get_scenes,get_scene_names,remove_scene
+from material import *
 
 
 #3rd part libraries
@@ -302,12 +303,19 @@ def main(page):
             else: 
                 obj_error_message.visible = False
                 
+                if texture_type.value == "Checkerboard":
+                    object_texture = checker_texture(colour.hex_to_rgb(colour1),colour.hex_to_rgb(colour2))
+                else:
+                    object_texture = None
+                
+                
                 position_parts = object_position.value.split(",")
                 x, y, z = map(int, position_parts)
                 obj_material = [float(Diffuse_input.text_field.value),float(Specular_input.text_field.value),float(Ambient_input.text_field.value),float(reflectivity_input.text_field.value)] 
                 print(obj_material)
+                print(material_type.value)
                 
-                myobj1 = globals()[object_type.value](Vector(x, y, z), float(object_radius.value), colour.hex_to_rgb(selected_color),obj_material)
+                myobj1 = globals()[object_type.value](Vector(x, y, z), float(object_radius.value), colour.hex_to_rgb(selected_color),obj_material,object_texture)
                 
                 scene_objects.append(myobj1)
                 
@@ -359,9 +367,43 @@ def main(page):
             
             page.update()
 
+        def get_texture_colour1(colour):
+            global colour1
+            colour1 = colour
+        def get_texture_colour2(colour):
+            global colour2
+            colour2 = colour
+
         
         
-        
+        def add_texture(texture):
+            texture_colour_buttons.controls.clear()
+            texture_colour_buttons.visible = True
+            
+            
+            if texture == "Checkerboard":
+                
+                texture_colour_buttons.controls.append(
+                    ft.Row(
+                        [
+                            ft.Text(f"Colour 1"),
+                            pick_color(get_texture_colour1),
+                        ]
+                    )
+                )
+
+                texture_colour_buttons.controls.append(
+                    ft.Row(
+                        [
+                            ft.Text(f"Colour 2"),
+                            pick_color(get_texture_colour2),
+                        ]
+                    )
+                )
+                page.update()
+                
+                
+
         
         def add_material(material,colour_check): 
             material_tile.visible = False
@@ -374,6 +416,7 @@ def main(page):
                 "Plastic": [0.6,0.2,0.2,0.0],
                 "Matte" : [0.8,0.1,0.1,0.0],
                 "Glossy" : [0.8,0.5,0.1,0.3],
+                
 
                 }
             
@@ -387,7 +430,8 @@ def main(page):
                 colour_button.visible = False
                 global selected_color
                 selected_color = material_colour[material]
-                
+            
+            
             page.update()
 
 
@@ -729,15 +773,31 @@ def main(page):
         Specular_input = IntField("Specular",0,1,0.5)
         reflectivity_input = IntField("Reflectivity",0,1)
         
+        
         material_type = ft.Dropdown(
             label= "Material Type",
             options=[(ft.dropdown.Option("Plastic",on_click= lambda e: add_material("Plastic",False) ) ) , 
                     (ft.dropdown.Option("Matte",on_click= lambda e: add_material("Matte",False) ) ),
                     (ft.dropdown.Option("Glossy",on_click= lambda e: add_material("Glossy",False) ) ),
-                    (ft.dropdown.Option("Custom", on_click= add_material_tile)) ],
+                     
+                    (ft.dropdown.Option("Custom", on_click= add_material_tile))],
             width=150,
         )
         
+        texture_type = ft.Dropdown(
+            label= "Texture Type",
+            options=[(ft.dropdown.Option("Checkerboard",on_click= lambda e: add_texture("Checkerboard") ) ) , 
+                    
+                     
+                    ],
+            width=150,
+        )
+        texture_colour_buttons = ft.Row(
+            [
+                
+            ]
+        )
+        texture_colour_buttons.visible = False
         
         material_tile = ft.Row(
             [Diffuse_input,Specular_input,Ambient_input,reflectivity_input],
@@ -779,7 +839,12 @@ def main(page):
         visible=False,
         )
 
-        def pick_color():
+        def put_in_selected(colour):
+            global selected_color
+            selected_color = colour
+            print(selected_color)
+        
+        def pick_color(func):
             def open_color_picker(e):
                 # Add the dialog to the page overlay
                 if d not in e.control.page.overlay:
@@ -792,8 +857,11 @@ def main(page):
 
             def change_color(e):
                 color_icon.icon_color = color_picker.color
-                global selected_color
-                selected_color = color_picker.color
+                # global selected_color
+                # selected_color = color_picker.color
+                if func:
+                    func(color_picker.color)
+                
                 d.open = False
                 e.control.page.update()
 
@@ -814,7 +882,7 @@ def main(page):
             return color_icon
         
         
-        colour_button = pick_color()
+        colour_button = pick_color(put_in_selected)
         
         Sign_out_Button= Fancy_Button(text="Sign Out", on_click=sign_out,)
         My_Renders_Button= Fancy_Button(text="My Renders", on_click=my_renders,)
@@ -1012,6 +1080,8 @@ def main(page):
                             material_tile,
 
                             material_type,
+                            ft.Column([texture_type,texture_colour_buttons]),
+                            
                             colour_button,
                             add_object_button,
                         ],

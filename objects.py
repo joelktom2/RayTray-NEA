@@ -7,11 +7,11 @@ class camera():
         self.position = position   # (x,y,z) coordinates of the camera
 
 class Sphere():
-    def __init__(self, center, radius,colour=(0,0,0),mat = [0.5,0.5,0.0,0.0]):
+    def __init__(self, center, radius,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
         self.center = center       # (x,y,z) coordinates of the center of the sphere
         self.radius = radius       # radius of the sphere integer 
-        self.colour = colour        # colour of the sphere (r,g,b)
-        self.material = material(colour,mat[0],mat[1],mat[2],mat[3])  # material properties of the sphere
+        self.colour = colour        #base colour of the sphere (r,g,b)
+        self.material = material(colour,mat[0],mat[1],mat[2],mat[3],texture)  # material properties of the sphere
 
 
     def __str__(self):

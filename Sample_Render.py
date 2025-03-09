@@ -7,6 +7,7 @@ from light import light
 import cv2
 import matplotlib.pyplot as plt
 from objects import Plane
+from material import checker_texture
 
 def render(file):    
     img = cv2.imread(file)
@@ -30,14 +31,14 @@ myobj = Sphere(Vector(0, 0, 5), 1.5, colour(0,0,1),[0.6,0.2,0.2,0.4])   #low ref
 
 
 mycam = camera(Vector(0, -0.35, -1))
-s1 = Sphere(Vector(0,0,2), 0.5, colour(0,0,1))
+s1 = Sphere(Vector(0,0,2), 0.5, colour(0,0,1),[0.5,0.5,0.0,0.0],)
 p1 = Plane(Vector(0,3,0),Vector(0,-1,0))
-ls = Sphere(Vector(0,10000.5,1), 10000, colour(0,1,0))
+ls = Sphere(Vector(0,10000.5,1), 10000, colour(0,1,0),[0.5,0.5,0.0,0.0],checker_texture())
 
 objects = []
 #objects.append(ls)
-objects.append(myobj)
-#objects.append(s1)
+#objects.append(ls)
+objects.append(s1)
 
 l1 = light(Vector(0,0,1),colour(1,1,1)) 
 

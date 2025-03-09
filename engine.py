@@ -57,8 +57,12 @@ class engine:
 
         return nearest,nearesti_p  #returns the object that the ray intersects with and the point of intersection
     
-    def color_at(self,scene,nearest,i_p):
-        base_colour = nearest.colour
+    def colour_at(self,scene,nearest,i_p):
+        
+        base_colour = nearest.material.get_colour(i_p)
+
+        
+        
         normal = nearest.get_normal(i_p)   #noraml to get_normal
         normal = normal.norm()
         light = scene.lights[0]
@@ -134,7 +138,7 @@ class engine:
             return fcolour
         
                 
-        fcolour += self.color_at(scene,object_hit,intersect_point) # returns the colour of the object at the point of intersection
+        fcolour += self.colour_at(scene,object_hit,intersect_point) # returns the colour of the object at the point of intersection
         
         if object_hit.material.reflectivity > 0 and depth < MAX_DEPTH:
             depth += 1
