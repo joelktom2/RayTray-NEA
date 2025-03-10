@@ -295,16 +295,21 @@ def main(page):
                 obj_error_message.visible = True
                 page.update()
             
-            elif selected_color == None:
+            elif colour_button.visible == True and selected_color == None:
                 obj_error_message.value = "Please select a color"
                 obj_error_message.visible = True
                 page.update()
             #object_type.value and object_position.value and selected_color and object_radius.value:
+            elif texture_type.value == "Checkerboard" and (checker_colour1 == None or checker_colour2 == None):
+                obj_error_message.value = "Please select two colours for the checkerboard texture"
+                obj_error_message.visible = True
+                page.update()
+            
             else: 
                 obj_error_message.visible = False
                 
                 if texture_type.value == "Checkerboard":
-                    object_texture = checker_texture(colour.hex_to_rgb(colour1),colour.hex_to_rgb(colour2))
+                    object_texture = checker_texture(colour.hex_to_rgb(checker_colour1),colour.hex_to_rgb(checker_colour2))
                 else:
                     object_texture = None
                 
@@ -367,39 +372,36 @@ def main(page):
             
             page.update()
 
-        def get_texture_colour1(colour):
-            global colour1
-            colour1 = colour
-        def get_texture_colour2(colour):
-            global colour2
-            colour2 = colour
+        global checker_colour1
+        checker_colour1 = None
+        global checker_colour2
+        checker_colour2 = None
+        
+        def get_checker_colour1(colour):
+            global checker_colour1
+            checker_colour1 = colour
+        def get_checker_colour2(colour):
+            global checker_colour2
+            checker_colour2 = colour
 
         
         
         def add_texture(texture):
-            texture_colour_buttons.controls.clear()
-            texture_colour_buttons.visible = True
+            
+            
             
             
             if texture == "Checkerboard":
                 
-                texture_colour_buttons.controls.append(
-                    ft.Row(
-                        [
-                            ft.Text(f"Colour 1"),
-                            pick_color(get_texture_colour1),
-                        ]
-                    )
-                )
-
-                texture_colour_buttons.controls.append(
-                    ft.Row(
-                        [
-                            ft.Text(f"Colour 2"),
-                            pick_color(get_texture_colour2),
-                        ]
-                    )
-                )
+                if checker_board_colour_buttons.visible:
+                    colour_button.visible = True
+                    texture_type.value = None
+                    checker_board_colour_buttons.visible = False
+                
+                else:
+                    colour_button.visible = False
+                    checker_board_colour_buttons.visible = True
+                
                 page.update()
                 
                 
@@ -760,7 +762,7 @@ def main(page):
 
         object_type = ft.Dropdown(
             label="Object Type",
-            options=[ft.dropdown.Option("Sphere")],
+            options=[ft.dropdown.Option("Sphere"),ft.dropdown.Option("Plane")],
             width=150,
         )
         pb = ft.ProgressBar(width=400)
@@ -792,12 +794,8 @@ def main(page):
                     ],
             width=150,
         )
-        texture_colour_buttons = ft.Row(
-            [
-                
-            ]
-        )
-        texture_colour_buttons.visible = False
+        
+
         
         material_tile = ft.Row(
             [Diffuse_input,Specular_input,Ambient_input,reflectivity_input],
@@ -882,6 +880,19 @@ def main(page):
             return color_icon
         
         
+
+        checker_board_colour_buttons = ft.Row(
+            [
+            ft.Text(f"Colour 1"),
+            pick_color(get_checker_colour1),
+            
+            ft.Text(f"Colour 2"),
+            pick_color(get_checker_colour2),
+                    
+            ]
+        )
+        
+        checker_board_colour_buttons.visible = False
         colour_button = pick_color(put_in_selected)
         
         Sign_out_Button= Fancy_Button(text="Sign Out", on_click=sign_out,)
@@ -1080,7 +1091,7 @@ def main(page):
                             material_tile,
 
                             material_type,
-                            ft.Column([texture_type,texture_colour_buttons]),
+                            ft.Column([texture_type,checker_board_colour_buttons]),
                             
                             colour_button,
                             add_object_button,

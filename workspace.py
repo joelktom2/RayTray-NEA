@@ -1,4 +1,10 @@
-from Maths import *
-joel = Vector(1,3,4)
+import flet as ft
 
-print(joel)
+def main(page: ft.Page):
+    
+    hellow = ft.Row([ft.Text(value="Hello, world!"),ft.Text(value="thththjtyj")])
+    page.add(hellow)
+    hellow.controls[1].value = "ererer"
+    page.update()
+ft.app(main)
+
