@@ -30,15 +30,15 @@ height = 200
 myobj = Sphere(Vector(0, 0, 5), 1.5, colour(0,0,1),[0.6,0.2,0.2,0.4])   #low reflection val dont work now
 
 
-mycam = camera(Vector(0, -0.35, -1))
-s1 = Sphere(Vector(0,0,2), 0.5, colour(0,0,1),[0.5,0.5,0.0,0.0],)
+mycam = camera(Vector(0, 0, -1))
+s1 = Sphere(Vector(0,0,2), 0.5, colour(0,1,0),[0.5,0.5,0.0,0.0],)
 p1 = Plane(Vector(0,3,0),Vector(0,-1,0))
 ls = Sphere(Vector(0,10000.5,1), 10000, colour(0,1,0),[0.5,0.5,0.0,0.0],checker_texture())
 
 objects = []
-#objects.append(ls)
-#objects.append(ls)
 objects.append(s1)
+objects.append(ls)
+
 
 l1 = light(Vector(0,0,1),colour(1,1,1)) 
 

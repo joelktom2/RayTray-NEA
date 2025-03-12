@@ -320,7 +320,10 @@ def main(page):
                 print(obj_material)
                 print(material_type.value)
                 
-                myobj1 = globals()[object_type.value](Vector(x, y, z), float(object_radius.value), colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                if object_type.value == "Floor":
+                    myobj1 = Sphere(Vector(0,10000.5,1), 10000, colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                else:
+                    myobj1 = globals()[object_type.value](Vector(x, y, z), float(object_radius.value), colour.hex_to_rgb(selected_color),obj_material,object_texture)
                 
                 scene_objects.append(myobj1)
                 
@@ -745,10 +748,18 @@ def main(page):
         selected_color = None  # Holds the selected colorrender
         
         
+        def removed_non_floor_ui(e):
+            
+            object_position.visible = False
+            object_radius.visible = False
+            page.update()
         
         
-        
-        
+        def add_non_floor_ui(e):
+            
+            object_position.visible = True
+            object_radius.visible = True
+            page.update()
         
         render_name = ft.TextField(label="Render Name",hint_text="e.g., My_Render", width=600,)
         light_pos = ft.TextField(label="Light Source Postion",hint_text="e.g., (x, y, z)", width=600)
@@ -762,9 +773,11 @@ def main(page):
 
         object_type = ft.Dropdown(
             label="Object Type",
-            options=[ft.dropdown.Option("Sphere"),ft.dropdown.Option("Plane")],
+            options=[ft.dropdown.Option("Sphere",on_click= add_non_floor_ui),ft.dropdown.Option("Floor",on_click= removed_non_floor_ui)],
             width=150,
         )
+        
+        
         pb = ft.ProgressBar(width=400)
         pb.visible = False
         set = MyButton(text="Set", on_click=set_name)
