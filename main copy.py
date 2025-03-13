@@ -278,44 +278,50 @@ def main(page):
         
         def validate_inputs_for_sphere():
             if validcoord(object_position.value) == False:
-                obj_error_message.value = "Please enter a valid position"
+                    obj_error_message.value = "Please enter a valid position"
+                    obj_error_message.visible = True
+                    page.update()
+            elif object_type.value == None:
+                obj_error_message.value = "Please select an object type"
                 obj_error_message.visible = True
                 page.update()
-                return False
-        
+
             elif validradius(object_radius.value) == False:
                 obj_error_message.value = "Please enter a valid radius"
                 obj_error_message.visible = True
                 page.update()
-                return False
+            
             elif colour_button.visible == True and selected_color == None:
                 obj_error_message.value = "Please select a color"
                 obj_error_message.visible = True
                 page.update()
-                return False
-            return True
         
-        def validate_inputs_for_floor():
-            
-            if colour_button.visible == True and selected_color == None:
-                obj_error_message.value = "Please select a color"
-                obj_error_message.visible = True
-                page.update()
-                return False
-            return True
         
         def add_object(e):   #adds an object to the scene
             
-            if object_type.value == None:
+            if validcoord(object_position.value) == False:
+                obj_error_message.value = "Please enter a valid position"
+                obj_error_message.visible = True
+                page.update()
+            elif object_type.value == None:
                 obj_error_message.value = "Please select an object type"
                 obj_error_message.visible = True
                 page.update()
-            elif object_type.value == "Sphere" and validate_inputs_for_sphere() == False:
-                pass
-            elif object_type.value == "Floor" and validate_inputs_for_floor() == False:
-                pass
 
+            elif validradius(object_radius.value) == False:
+                obj_error_message.value = "Please enter a valid radius"
+                obj_error_message.visible = True
+                page.update()
+            
+            elif colour_button.visible == True and selected_color == None:
+                obj_error_message.value = "Please select a color"
+                obj_error_message.visible = True
+                page.update()
             #object_type.value and object_position.value and selected_color and object_radius.value:
+            elif texture_type.value == "Checkerboard" and (checker_colour1 == None or checker_colour2 == None):
+                obj_error_message.value = "Please select two colours for the checkerboard texture"
+                obj_error_message.visible = True
+                page.update()
             
             else: 
                 obj_error_message.visible = False
@@ -326,17 +332,15 @@ def main(page):
                     object_texture = None
                 
                 
-
+                position_parts = object_position.value.split(",")
+                x, y, z = map(int, position_parts)
                 obj_material = [float(Diffuse_input.text_field.value),float(Specular_input.text_field.value),float(Ambient_input.text_field.value),float(reflectivity_input.text_field.value)] 
-                
                 print(obj_material)
                 print(material_type.value)
                 
                 if object_type.value == "Floor":
                     myobj1 = Sphere(Vector(0,10000.5,1), 10000, colour.hex_to_rgb(selected_color),obj_material,object_texture)
                 else:
-                    position_parts = object_position.value.split(",")
-                    x, y, z = map(int, position_parts)
                     myobj1 = globals()[object_type.value](Vector(x, y, z), float(object_radius.value),colour.hex_to_rgb(selected_color),obj_material,object_texture)
                 
                 scene_objects.append(myobj1)
@@ -678,7 +682,7 @@ def main(page):
             width_input.value = "300"
             height_input.value = "200"
             object_position.value = "0,0,5"
-            object_radius.value = "0.5"
+            object_radius.value = 0.5
             page.update()
 
                 
@@ -775,11 +779,11 @@ def main(page):
             object_radius.visible = True
             page.update()
         
-        render_name = ft.TextField(label="Render Name",hint_text="e.g., My_Render", width=600,border_color=ft.colors.GREEN_800)
-        light_pos = ft.TextField(label="Light Source Postion",hint_text="e.g. x, y, z", width=600,border_color=ft.colors.GREEN_800)
-        cam_pos = ft.TextField(label= "Camera Postion",hint_text="e.g. x, y, z", width=600,border_color=ft.colors.GREEN_800)
-        width_input = ft.TextField(label = "Width",hint_text="e.g., 300", width=200, on_change=update_dimensions,border_color=ft.colors.GREEN_800)
-        height_input = ft.TextField(label = "height",hint_text="e.g., 200", width=200, on_change=update_dimensions,border_color=ft.colors.GREEN_800)
+        render_name = ft.TextField(label="Render Name",hint_text="e.g., My_Render", width=600,)
+        light_pos = ft.TextField(label="Light Source Postion",hint_text="e.g., (x, y, z)", width=600)
+        cam_pos = ft.TextField(label= "Camera Postion",hint_text="e.g., (x, y, z)", width=600)
+        width_input = ft.TextField(label = "Width",hint_text="e.g., 300", width=200, on_change=update_dimensions)
+        height_input = ft.TextField(label = "height",hint_text="e.g., 200", width=200, on_change=update_dimensions)
 
         current_width = ft.Text("Current Width: ")
         current_height = ft.Text("Current Height: ")
@@ -795,8 +799,8 @@ def main(page):
         pb = ft.ProgressBar(width=400)
         pb.visible = False
         set = MyButton(text="Set", on_click=set_name)
-        object_position = ft.TextField(label="Object Position", hint_text="e.g., (x, y, z)", width=150,border_color=ft.colors.GREEN_800)
-        object_radius = ft.TextField(label="Object Radius", hint_text="e.g., 0.5", width=150,border_color=ft.colors.GREEN_800)
+        object_position = ft.TextField(label="Object Position", hint_text="e.g., (x, y, z)", width=150)
+        object_radius = ft.TextField(label="Object Radius", hint_text="e.g., 0.5", width=150)
         Ambient_input = IntField("Ambient",0,1)
         Diffuse_input = IntField("Diffuse",0,1,0.5)
         Specular_input = IntField("Specular",0,1,0.5)
@@ -1152,8 +1156,8 @@ def main(page):
         
 
     # Initial login UI
-    username = ft.TextField(label="Username", width=300,border_color=ft.colors.GREEN_800)
-    password = ft.TextField(label="Password", password=True, width=300,border_color=ft.colors.GREEN_800)
+    username = ft.TextField(label="Username", width=300)
+    password = ft.TextField(label="Password", password=True, width=300)
     
     error_message = ft.Text(
         "",

@@ -2,6 +2,7 @@ import math
 from material import material
 from image import colour
 
+
 class camera():
     def __init__(self,position):
         self.position = position   # (x,y,z) coordinates of the camera
@@ -22,18 +23,40 @@ class Sphere():
     
     
     def intersects(self, ray):
-        L = ray.origin - self.center
-        a = ray.direction.dp(ray.direction)
-        b = 2*((L).dp(ray.direction))
-        c = (L).mag()**2 - self.radius**2
-        if b**2 - (4*a*c) < 0:
+        
+        l = ray.origin - self.center
+        a = 1
+        b = 2*((l).dp(ray.direction))
+        c = (l).mag()**2 - self.radius**2
+        discrminant = b**2 - (4*a*c)
+    
+        if discrminant < -1e-6:
             return None
+            
+        elif discrminant == 0 or abs(discrminant) < 1e-6:
+            t =  (-(b)) /(2*a)
+            if t>= 0:
+                return ray.point(t)
+            else:
+                return None
+            
         t1 =  (-(b) + (math.sqrt(b**2 - (4*a*c))) ) /(2*a)
         t2 =  ( -(b) - (math.sqrt(b**2 - (4*a*c))) ) /(2*a)
-        if t1 < t2 and t1>= 0:
-            return ray.point(t1)                
+    
+        if abs((ray.origin - self.center).mag() - self.radius) < 1e-6:
+            return ray.point(max(t1, t2))
+            
+        if t1 >= 0 and t2>= 0:
+            return ray.point(min(t1, t2))                
+        
+        elif t1 >= 0:
+            return ray.point(t1)  
+        
+        elif t2 >= 0:
+            return ray.point(t2)  
         else:
-            return ray.point(t2)      # returns the point of intersections of the ray with the sphere
+            return None 
+        
            
 
 class Plane():
@@ -57,4 +80,5 @@ class Plane():
     
     def get_normal(self, point):
         return self.normal.norm()
+
 

@@ -1,10 +1,7 @@
-import flet as ft
+def joel(what,why="ring",who):
+    print(f"what : {what}")
+    print(f"why : {why}")
+    print(f"who : {who}")
 
-def main(page: ft.Page):
-    
-    hellow = ft.Row([ft.Text(value="Hello, world!"),ft.Text(value="thththjtyj")])
-    page.add(hellow)
-    hellow.controls[1].value = "ererer"
-    page.update()
-ft.app(main)
 
+joel("me",,"hi")

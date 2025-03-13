@@ -2,7 +2,11 @@ from Maths import Vector
 class colour(Vector):
     
     def hex_to_rgb(hex):         # converts hex colour to rgb colour
+       
+        if hex == None:
+            return None
         hex = hex.lstrip('#')
+        
         r = int(int(hex[0:2], 16)/255)
         g = int(int(hex[2:4], 16)/255)
         b = int(int(hex[4:6], 16)/255)
