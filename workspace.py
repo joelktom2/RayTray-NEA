@@ -1,7 +1,9 @@
-def joel(what,why="ring",who):
-    print(f"what : {what}")
-    print(f"why : {why}")
-    print(f"who : {who}")
+import flet as ft
 
+def main(page: ft.Page):
+    
+    page.add(
+        ft.TextButton("toggle", on_click=None)
+    )
 
-joel("me",,"hi")
+ft.app(main)

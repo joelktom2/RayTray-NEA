@@ -37,8 +37,10 @@ def create_user(username, password):
 def login_user(username, password):
     connection = sqlite3.connect('data.db')
     cursor = connection.cursor()
+    
     cursor.execute("SELECT PasswordHash FROM Users WHERE Username = ?", (username,))
     result = cursor.fetchone()
+    
     if result is None:
         connection.close()
         print("User not found")
@@ -59,8 +61,7 @@ def get_user_id(username):
     connection = sqlite3.connect('data.db')
     cursor = connection.cursor()
     cursor.execute("""
-    SELECT UserID FROM Users WHERE Username = ?
-    """, (username,))
+    SELECT UserID FROM Users WHERE Username = ?""", (username,))
     result = cursor.fetchone()
     connection.close()
 

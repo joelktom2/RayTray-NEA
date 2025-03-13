@@ -33,6 +33,20 @@ def main(page):
     global User_Status  
     User_Status = None
     
+    def switch_theme(e):
+        if page.theme_mode == ft.ThemeMode.LIGHT:
+            
+            page.theme_mode = ft.ThemeMode.DARK
+            theme_switch_button.label = "Dark Mode"
+        else:
+            page.theme_mode = ft.ThemeMode.LIGHT
+            theme_switch_button.label = "Light Mode"
+        page.update()
+        
+
+    theme_switch_button = ft.Switch(label="Dark Mode", on_change=switch_theme)     
+    
+    
     def username_sanitate(value):
         if re.fullmatch(r'[A-Za-z0-9#_]+', value):
             return True
@@ -56,10 +70,16 @@ def main(page):
     def register(e):
         usern = username.value
         pwd = password.value
+        
         if not usern or not pwd:
             error_message.value = "Invalid username or password"
+            error_message.visible = True    
+            page.update()
+            return
+        
+        if len(pwd) < 8:
+            error_message.value = "Password must be at least 8 characters"
             error_message.visible = True
-            
             page.update()
             return
         #input sanitation
@@ -90,13 +110,9 @@ def main(page):
         
         usern = str(username.value)
         pwd = str(password.value)
+        
         #input sanitation
         if not usern or not pwd:
-            error_message.value = "Invalid username or password"
-            error_message.visible = True
-            page.update()
-            return
-        if not username_sanitate(usern) or not password_sanitate(pwd):
             error_message.value = "Invalid username or password"
             error_message.visible = True
             page.update()
@@ -254,6 +270,11 @@ def main(page):
         def add_cam(e): # adds a camera to the scene
             
             if validcoord(cam_pos.value):
+                if added_cam.controls != []:
+                    cam_error_message.value = "Only one camera is allowed"
+                    cam_error_message.visible = True
+                    page.update()
+                    return
                 cam_error_message.visible = False
                 cam_parts = cam_pos.value.split(",")
                 x, y, z = map(int, cam_parts)
@@ -727,9 +748,7 @@ def main(page):
             page.controls.clear()
             
             scenes = get_scenes(get_user_id(username.value))
-            
             image_paths = [row[0] for row in scenes]
-            print(f"the image paths are {image_paths}")
             for image_path in image_paths:
                 
                 
@@ -743,6 +762,7 @@ def main(page):
                 page.update()
             
             page.add(
+                theme_switch_button,
                 ft.Column( 
                     [
                         ft.Text("My Renders", size=30, weight=ft.FontWeight.BOLD),
@@ -789,6 +809,7 @@ def main(page):
             label="Object Type",
             options=[ft.dropdown.Option("Sphere",on_click= add_non_floor_ui),ft.dropdown.Option("Floor",on_click= removed_non_floor_ui)],
             width=150,
+            border_color= ft.colors.GREEN_800,
         )
         
         
@@ -811,6 +832,8 @@ def main(page):
                      
                     (ft.dropdown.Option("Custom", on_click= add_material_tile))],
             width=150,
+            border_color= ft.colors.GREEN_800,
+
         )
         
         texture_type = ft.Dropdown(
@@ -820,6 +843,7 @@ def main(page):
                      
                     ],
             width=150,
+            border_color= ft.colors.GREEN_800,
         )
         
 
@@ -997,24 +1021,21 @@ def main(page):
 
 
         def copy_image_to_clipboard(image_path):
-
-            try:
-                # Open the image file
+            try:                
                 image = Image.open(image_path)
-
-                # Convert the image to BMP format for clipboard compatibility
+                
                 output = io.BytesIO()
                 image.convert("RGB").save(output, "BMP")
-                bmp_data = output.getvalue()[14:]  # Remove the BMP header
+                bmp_data = output.getvalue()[14:]  
                 output.close()
 
-                # Open clipboard and set the image data
                 win32clipboard.OpenClipboard()
                 win32clipboard.EmptyClipboard()
                 win32clipboard.SetClipboardData(win32clipboard.CF_DIB, bmp_data)
                 win32clipboard.CloseClipboard()
 
                 print("Image successfully copied to the clipboard!")
+
             except Exception as e:
                 print(f"Error copying image to clipboard: {e}")
         
@@ -1024,7 +1045,7 @@ def main(page):
             print("the image is ",img.src)
             if User_Status:
                 page.add(
-                    
+                    theme_switch_button,
                     img_viewer,
                     ft.Row([
                         ft.IconButton(icon=ft.icons.ADD ,tooltip= "add to library", on_click=img_to_library),
@@ -1042,6 +1063,7 @@ def main(page):
                 page.update()
             else:
                 page.add(
+                    theme_switch_button,
                     img_viewer,
                     ft.Row([
                         ft.IconButton(icon=ft.icons.DOWNLOAD ,tooltip= "download", on_click=lambda e: download_file(img.src)),
@@ -1077,14 +1099,14 @@ def main(page):
         )
 
         
-        
-        
+   
       
 
 
         page.add(
             
             pb,
+            theme_switch_button,
             ft.Column(
                 [
                     ft.Row(
@@ -1174,6 +1196,7 @@ def main(page):
         page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     
         page.add(
+            theme_switch_button,
 
             ft.Column(
                 [
