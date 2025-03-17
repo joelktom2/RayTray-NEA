@@ -3,9 +3,7 @@ from material import material
 from image import colour
 
 
-class camera():
-    def __init__(self,position):
-        self.position = position   # (x,y,z) coordinates of the camera
+
 
 class Sphere():
     def __init__(self, center, radius,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):

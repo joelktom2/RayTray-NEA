@@ -1,4 +1,7 @@
 from Maths import Vector 
+
+
+
 class colour(Vector):
     
     def hex_to_rgb(hex):         # converts hex colour to rgb colour
@@ -13,9 +16,6 @@ class colour(Vector):
         return colour(r, g, b)
     
     
-    
-
-
 class Image:      
     def __init__(self, width, height):
         self.width = width

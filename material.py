@@ -1,5 +1,7 @@
 import math
 from image import colour
+
+
 class material():
     def __init__(self, colour, diffuse,specular, ambient, reflectivity=0.0,texture = None):
         self.colour = colour  # Colour of the material

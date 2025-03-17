@@ -1,7 +1,7 @@
 from image import colour
 from image import Image
 from Maths import Ray,Vector
-from light import light
+
 class engine:
     
 

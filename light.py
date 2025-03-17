@@ -1,4 +1,6 @@
 from image import colour
+
+
 class light():
     def __init__(self,position,colour= colour(1,1,1),brightness=1.0):
         self.position = position

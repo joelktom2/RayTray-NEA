@@ -52,14 +52,37 @@ def main(page):
             return True
         return False   #checks if the username is valid
     
+    
     def password_sanitate(value):
+        if " " in value:
+            error_message.value = "Password Cannot contain blank spaces"
+            error_message.visible = True    
+            page.update()
 
-        allowed_special_characters = r"~`!@#$%^&*()+=_\-{}[\]\\|:;”’?/<>,."
-        pattern = rf"[A-Za-z0-9{re.escape(allowed_special_characters)}]+"
-        
-        if re.fullmatch(pattern, value):
-            return True
-        return False     #checks if the password is valid
+        elif len(value) < 8:
+            error_message.value = "Password Must be more than 7 characters"
+            error_message.visible = True    
+            page.update()
+            return False
+            
+        elif not(re.search(r"[A-Z]",value)):
+            error_message.value = "Password Must contain at least 1 Capital Letter"
+            error_message.visible = True    
+            page.update()
+            return False 
+        elif not(re.search(r"[\d]",value)):
+            error_message.value = "Password Must contain at least 1 digit"
+            error_message.visible = True    
+            page.update()
+            return False
+        elif not(re.search(r"[!@\$%\^&\*\+#]",value)):
+            error_message.value = "Password Must contain at least 1 special characters"
+            error_message.visible = True    
+            page.update()
+            return False
+        error_message.visible = False
+        return True     
+
 
     def guest(e):
         global User_Status
@@ -72,16 +95,12 @@ def main(page):
         pwd = password.value
         
         if not usern or not pwd:
-            error_message.value = "Invalid username or password"
+            error_message.value = "Please Enter a username or password"
             error_message.visible = True    
             page.update()
             return
         
-        if len(pwd) < 8:
-            error_message.value = "Password must be at least 8 characters"
-            error_message.visible = True
-            page.update()
-            return
+        
         #input sanitation
         if not username_sanitate(usern) or not password_sanitate(pwd):
             error_message.value = "Invalid username or password"
@@ -113,10 +132,11 @@ def main(page):
         
         #input sanitation
         if not usern or not pwd:
-            error_message.value = "Invalid username or password"
+            error_message.value = "Please enter a username and password"
             error_message.visible = True
             page.update()
             return
+        
         
         valid = login_user(usern,pwd)
         if valid == False:
