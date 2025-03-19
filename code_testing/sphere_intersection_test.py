@@ -5,7 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import unittest
 from Maths import Vector
 from Maths import Ray
-from objects import Sphere
+from objects import Sphere,Cone
 
 
 class TestSphereIntersection(unittest.TestCase):
@@ -52,4 +52,4 @@ class TestSphereIntersection(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 
-# print(Sphere(Vector(0, 0, 0), 5).intersects(Ray(Vector(5, 0, 0), Vector(1, 0, 0))))
+

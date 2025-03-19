@@ -53,8 +53,7 @@ class Vector():
     def proj(self,v2):
         return (self.dp(v2)/v2.mag())
     
-    def whole(self):
-        return Vector(int(self.x), int(self.y), int(self.z))
+    
     
 class Matrix():
     def __init__(self,elements):
@@ -172,7 +171,7 @@ class Matrix():
 class Ray():
     def __init__(self, origin, direction):
         self.origin = (origin)
-        self.direction = (direction)
+        self.direction = (direction).norm()
 
     def __str__(self):
         print(self.origin)

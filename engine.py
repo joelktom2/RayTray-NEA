@@ -130,9 +130,9 @@ class engine:
         
         object_hit,intersect_point = self.nearest(scene,ray)
         
-        # if object_hit != None:
-        #     #print((object_hit.colour))
-        #     pass
+        if object_hit == None:
+            
+            pass
         
         if object_hit == None or intersect_point == None:
             return fcolour

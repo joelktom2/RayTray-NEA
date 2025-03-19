@@ -1,6 +1,6 @@
 from Maths import Vector
 from scene import Scene,camera
-from objects import Sphere
+from objects import Sphere , Cone
 from image import colour
 from engine import engine
 from light import light
@@ -8,6 +8,7 @@ import cv2
 import matplotlib.pyplot as plt
 from objects import Plane
 from material import checker_texture
+import math
 
 def render(file):    
     img = cv2.imread(file)
@@ -31,16 +32,16 @@ myobj = Sphere(Vector(0, 0, 5), 1.5, colour(0,0,1),[0.6,0.2,0.2,0.4])   #low ref
 
 
 mycam = camera(Vector(0, 0, -1))
-s1 = Sphere(Vector(0,0,2), 0.5, None,[0.5,0.5,0.0,0.0],checker_texture())
+s1 = Sphere(Vector(0,-2,2), 0.5, None,[0.5,0.5,0.0,0.0],checker_texture())
 p1 = Plane(Vector(0,3,0),Vector(0,-1,0))
 ls = Sphere(Vector(0,10000.5,1), 10000, None,[0.5,0.5,0.0,0.0],checker_texture())
-
+c1 = Cone(Vector(0,-5.5,5),Vector(0,1,0),math.pi/6,5,colour(1,0,0),[0.5,0.5,0.0,0.0])
 objects = []
-objects.append(s1)
-#objects.append(ls)
+objects.append(c1)
 
 
-l1 = light(Vector(0,0,1),colour(1,1,1)) 
+
+l1 = light(Vector(0,0,0),colour(1,1,1)) 
 
 user_scene = Scene(objects,mycam,width,height,[l1])  
 

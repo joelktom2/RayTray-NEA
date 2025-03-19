@@ -1,12 +1,10 @@
-import re
+from Maths import Vector, Ray
+from objects import Cone
+import math
 
-txt = "1231242342B234234"
+ray = Ray(Vector(1, -5, 0), Vector(0, 1, 0))
+cone = Cone(Vector(0, 0, 0), Vector(0, 1, 0), math.radians(45))
 
-#Search for a sequence that starts with "he", followed by 1 or more  (any) characters, and an "o":
+intersection = cone.intersects(ray)
 
-x = re.search("[A-Z]+", txt)
-
-if x:
-	print("found")
-else:
-	print("not found")
+print(intersection)
