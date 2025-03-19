@@ -1,7 +1,7 @@
 #My libraries
 from image import colour
 from Maths import Vector
-from objects import Sphere
+from objects import Sphere,Cone
 from engine import engine
 from scene import Scene,camera
 from light import light
@@ -345,6 +345,29 @@ def main(page):
                 return False
             return True
         
+        def validate_inputs_for_cone():
+            if validate_inputs_for_sphere() == False:
+                return False
+            elif validcoord(cone_axis.value) == False:
+                obj_error_message.value = "Please enter a valid axis"
+                obj_error_message.visible = True
+                page.update()
+                return False
+            elif cone_angle.value >=0 and cone_angle.value <= 90:
+                obj_error_message.value = "Please enter a valid angle between 0 and 90 degrees"
+                obj_error_message.visible = True
+                page.update()
+                return False
+            #check axis and angle
+            return True
+        
+        def string_coords_to_Vector(value):
+            position_parts = value.split(",")
+            x, y, z = map(int, position_parts)
+            return Vector(x, y, z)
+        
+        
+        
         def add_object(e):   #adds an object to the scene
             
             if object_type.value == None:
@@ -355,8 +378,10 @@ def main(page):
                 pass
             elif object_type.value == "Floor" and validate_inputs_for_floor() == False:
                 pass
+            elif object_type.value == "Cone" and validate_inputs_for_cone() == False:
+                pass
 
-            #object_type.value and object_position.value and selected_color and object_radius.value:
+           
             
             else: 
                 obj_error_message.visible = False
@@ -375,10 +400,15 @@ def main(page):
                 
                 if object_type.value == "Floor":
                     myobj1 = Sphere(Vector(0,10000.5,1), 10000, colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                elif object_type.value == "Cone":
+                    tip = string_coords_to_Vector(object_position.value)
+                    axis = string_coords_to_Vector(cone_axis.value)
+                    angle = float(math.radians(cone_angle.value))
+                    height = float(object_radius.value)
+                    myobj1 = Cone(tip,axis,angle,height,colour.hex_to_rgb(selected_color),obj_material,object_texture)
                 else:
-                    position_parts = object_position.value.split(",")
-                    x, y, z = map(int, position_parts)
-                    myobj1 = globals()[object_type.value](Vector(x, y, z), float(object_radius.value),colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                    position = string_coords_to_Vector(object_position.value)
+                    myobj1 = globals()[object_type.value](position, float(object_radius.value),colour.hex_to_rgb(selected_color),obj_material,object_texture)
                 
                 scene_objects.append(myobj1)
                 
@@ -802,17 +832,38 @@ def main(page):
         selected_color = None  # Holds the selected colorrender
         
         
-        def removed_non_floor_ui(e):
-            
-            object_position.visible = False
-            object_radius.visible = False
+        def add_floor_ui(e):
+            remove_cone_ui(e)
+            remove_sphere_ui(e)
             page.update()
         
         
-        def add_non_floor_ui(e):
+        def add_Sphere_ui(e):
             
             object_position.visible = True
             object_radius.visible = True
+            object_position.label = "Object Position"
+            object_radius.label = "Object Radius"
+            remove_cone_ui(e)
+            page.update()
+
+        def add_cone_ui(e):
+            object_position.visible = True
+            object_radius.visible = True
+            object_position.label = "Cone Tip/corner Position"
+            object_radius.label = "Cone Height"
+            cone_angle.visible = True
+            cone_axis.visible = True
+            page.update()
+
+        def remove_cone_ui(e):
+            cone_axis.visible = False
+            cone_angle.visible = False
+            page.update()
+
+        def remove_sphere_ui(e):
+            object_position.visible = False
+            object_radius.visible = False
             page.update()
         
         render_name = ft.TextField(label="Render Name",hint_text="e.g., My_Render", width=600,border_color=ft.colors.GREEN_800)
@@ -827,17 +878,25 @@ def main(page):
 
         object_type = ft.Dropdown(
             label="Object Type",
-            options=[ft.dropdown.Option("Sphere",on_click= add_non_floor_ui),ft.dropdown.Option("Floor",on_click= removed_non_floor_ui)],
+            options=[ft.dropdown.Option("Sphere",on_click= add_Sphere_ui),
+                     ft.dropdown.Option("Floor",on_click= add_floor_ui),
+                     ft.dropdown.Option("Cone",on_click= add_cone_ui),],
             width=150,
             border_color= ft.colors.GREEN_800,
         )
-        
+   
         
         pb = ft.ProgressBar(width=400)
         pb.visible = False
         set = MyButton(text="Set", on_click=set_name)
         object_position = ft.TextField(label="Object Position", hint_text="e.g., (x, y, z)", width=150,border_color=ft.colors.GREEN_800)
         object_radius = ft.TextField(label="Object Radius", hint_text="e.g., 0.5", width=150,border_color=ft.colors.GREEN_800)
+
+        cone_axis = ft.TextField(label="Cone Axis", hint_text="e.g., (x, y, z)", width=150,border_color=ft.colors.GREEN_800)
+        cone_angle = ft.TextField(label="Cone Angle", hint_text="e.g., 45", width=150,border_color=ft.colors.GREEN_800)
+        cone_axis.visible = False
+        cone_angle.visible = False
+
         Ambient_input = IntField("Ambient",0,1)
         Diffuse_input = IntField("Diffuse",0,1,0.5)
         Specular_input = IntField("Specular",0,1,0.5)
@@ -1156,6 +1215,8 @@ def main(page):
                         [
                             object_type,
                             object_position,
+                            cone_axis,
+                            cone_angle,
                             object_radius,
                             material_tile,
 

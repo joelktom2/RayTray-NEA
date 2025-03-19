@@ -16,11 +16,12 @@ def main(page: ft.Page):
         viewer.visible= False
         viewer.content = None
         
-        page.add(ft.Text("Cleared"))
+        page.add(ft.Text("dfsdfsdf"))
         page.update()
 
     
     page.add(
+        ft.Text("dfsdfsdf"),
         viewer,
         ft.ElevatedButton(
             text="Reset",
