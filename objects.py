@@ -214,6 +214,8 @@ class Cylinder():
 
 
         def intersects_cap():
+            if abs(ray.direction.dp(self.axis)) < 1e-6:
+                return None
             top_cap = self.center + self.axis * (self.height / 2)
             bottom_cap = self.center + self.axis*(self.height / 2)
             top = ((top_cap - ray.origin).dp(self.axis)) / ray.direction.dp(self.axis)

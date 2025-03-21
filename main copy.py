@@ -1,14 +1,14 @@
 #My libraries
 from image import colour
 from Maths import Vector
-from objects import Sphere
+from objects import *
 from engine import engine
 from scene import Scene,camera
 from light import light
 from loginsys import create_user,login_user,get_user_id
 from scenes_table import create_scene,get_scenes,get_scene_names,remove_scene
-from material import *
-
+from material import material
+from textures import *
 
 #3rd part libraries
 import flet as ft
@@ -337,16 +337,75 @@ def main(page):
             return True
         
         def validate_inputs_for_floor():
-            
+
             if colour_button.visible == True and selected_color == None:
                 obj_error_message.value = "Please select a color"
                 obj_error_message.visible = True
                 page.update()
                 return False
             return True
-        def validate_inputs_for_cone():
-            pass
         
+        def validate_inputs_for_cone():
+            if validate_inputs_for_sphere() == False:
+                return False
+            elif validcoord(cone_axis.value) == False:
+                obj_error_message.value = "Please enter a valid axis"
+                obj_error_message.visible = True
+                page.update()
+                return False
+            elif float(cone_angle.value) <=0.0 or float(cone_angle.value) >= 90.0:
+                obj_error_message.value = "Please enter a valid angle between 0 and 90 degrees"
+                obj_error_message.visible = True
+                page.update()
+                return False
+            #check axis and angle
+            return True
+        
+        
+        def validate_inputs_for_Ellipsoid():
+            if validcoord(object_position.value) == False:
+                obj_error_message.value = "Please enter a valid position"
+                obj_error_message.visible = True
+                page.update()
+                return False
+            elif colour_button.visible == True and selected_color == None:
+                obj_error_message.value = "Please select a color"
+                obj_error_message.visible = True
+                page.update()
+                return False
+            elif colour_button.visible == True and selected_color == None:
+                obj_error_message.value = "Please select a color"
+                obj_error_message.visible = True
+                page.update()
+                return False
+            return True
+        
+        def validate_inputs_for_Cylinder():
+            if validate_inputs_for_sphere() == False:
+                return False
+            elif cylinder_radius.visible == False:
+                obj_error_message.value = "Please enter a radius"
+                obj_error_message.visible = True
+                page.update()
+                return False
+            elif cylinder_allignment.value == None:
+                obj_error_message.value = "Please select an allignment"
+                obj_error_message.visible = True
+                page.update()
+                return False
+            elif colour_button.visible == True and selected_color == None:
+                obj_error_message.value = "Please select a color"
+                obj_error_message.visible = True
+                page.update()
+                return False
+            return True
+        
+        def string_coords_to_Vector(value):
+            position_parts = value.split(",")
+            x, y, z = map(int, position_parts)
+            return Vector(x, y, z)
+        
+    
         def add_object(e):   #adds an object to the scene
             
             if object_type.value == None:
@@ -359,8 +418,10 @@ def main(page):
                 pass
             elif object_type.value == "Cone" and validate_inputs_for_cone() == False:
                 pass
-
-           
+            elif object_type.value == "Ellipsoid" and validate_inputs_for_Ellipsoid() == False:
+                pass
+            elif object_type.value == "Cylinder" and validate_inputs_for_Cylinder() == False:
+                pass
             
             else: 
                 obj_error_message.visible = False
@@ -379,17 +440,39 @@ def main(page):
                 
                 if object_type.value == "Floor":
                     myobj1 = Sphere(Vector(0,10000.5,1), 10000, colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                elif object_type.value == "Cone":
+                    tip = string_coords_to_Vector(object_position.value)
+                    axis = string_coords_to_Vector(cone_axis.value)
+                    angle = float(math.radians(float(cone_angle.value)))
+                    height = float(object_radius.value)
+                    myobj1 = Cone(tip,axis,angle,height,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                elif object_type.value == "Ellipsoid":
+                    position = string_coords_to_Vector(object_position.value)
+                    a = float(object_abc.controls[0].value)
+                    b = float(object_abc.controls[1].value)
+                    c = float(object_abc.controls[2].value)
+                    abc = Vector(a,b,c)
+                    myobj1 = Ellipsoid(position, abc,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                elif object_type.value == "Cylinder":
+                    position = string_coords_to_Vector(object_position.value)
+                    radius = float(cylinder_radius.value)
+                    height = float(object_radius.value)
+                    if cylinder_allignment.value == "Horizontal(X)":
+                        myobj1 = Cylinder(position,"x",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                    elif cylinder_allignment.value == "Vertical(y)":
+                        myobj1 = Cylinder(position,"y",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                    else:
+                        myobj1 = Cylinder(position,"z",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
                 else:
-                    position_parts = object_position.value.split(",")
-                    x, y, z = map(int, position_parts)
-                    myobj1 = globals()[object_type.value](Vector(x, y, z), float(object_radius.value),colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                    position = string_coords_to_Vector(object_position.value)
+                    myobj1 = globals()[object_type.value](position, float(object_radius.value),colour.hex_to_rgb(selected_color),obj_material,object_texture)
                 
                 scene_objects.append(myobj1)
                 
                 
                 added_objects.controls.append(
                     ft.Row(
-                        [(ft.Text(f"Type: {object_type.value},Radius {object_radius.value}, Position: {object_position.value}, Color: {selected_color}")),Remove_ButtonLite(text="Remove", on_click=lambda e: remove_object(e, myobj1))] , alignment=ft.MainAxisAlignment.CENTER
+                        [(ft.Text(f"Type: {object_type.value} Position: {object_position.value}, Color: {selected_color}")),Remove_ButtonLite(text="Remove", on_click=lambda e: remove_object(e, myobj1))] , alignment=ft.MainAxisAlignment.CENTER
                         
                     ),
                 
@@ -411,10 +494,10 @@ def main(page):
         
 
         
-        def minus_click(text_field,mininum):
-            value = round(float(text_field.value) - 0.1, 1)
-            if value < mininum:
-                obj_error_message.value = "Coefficients must be between 0.0 and 1.0"
+        def minus_click(text_field,minimum,step):
+            value = round(float(text_field.value) - step, 1)
+            if value <= minimum:
+                obj_error_message.value = f"Coefficients must be more than {minimum}"
                 obj_error_message.visible = True
             else:
                 obj_error_message.visible = False
@@ -423,10 +506,10 @@ def main(page):
             page.update()
         
         
-        def plus_click(text_field,maximum):
-            value = round(float(text_field.value) + 0.1, 1)
+        def plus_click(text_field,maximum,step):
+            value = round(float(text_field.value) + step, 1)
             if value > maximum:
-                obj_error_message.value = "Coefficients must be between 0.0 and 1.0"
+                obj_error_message.value = f"Coefficients must be less than {maximum}"
                 obj_error_message.visible = True
             else:
                 obj_error_message.visible = False
@@ -505,7 +588,7 @@ def main(page):
         
   
         class IntField(ft.Container):
-            def __init__(self,name,min,max,default="0.0"):
+            def __init__(self,name,min,max,default="0.0",step=0.1):
                 super().__init__()
                 self.text_field = ft.TextField(
                     label=str(name),
@@ -517,14 +600,14 @@ def main(page):
                     [
                         ft.IconButton(
                             icon=ft.icons.REMOVE, 
-                            on_click=lambda e: minus_click(self.text_field,min),
+                            on_click=lambda e: minus_click(self.text_field,min,step),
                             icon_size=20,
                             padding= 1
                         ),
                         self.text_field,
                         ft.IconButton(
                             icon=ft.icons.ADD, 
-                            on_click=lambda e: plus_click(self.text_field,max),
+                            on_click=lambda e: plus_click(self.text_field,max,step),
                             icon_size= 20,
                             padding= 1
                         ),
@@ -806,18 +889,65 @@ def main(page):
         selected_color = None  # Holds the selected colorrender
         
         
-        def remove_non_floor_ui(e):
-            
-            object_position.visible = False
-            object_radius.visible = False
+        def add_floor_ui(e):
+            remove_ui()
             page.update()
         
         
         def add_Sphere_ui(e):
-            
+            remove_ui()
             object_position.visible = True
             object_radius.visible = True
+            object_position.label = "Object Position"
+            object_radius.label = "Object Radius"
             page.update()
+
+        def add_cone_ui(e):
+            remove_ui()
+            object_position.visible = True
+            object_radius.visible = True
+            object_position.label = "Cone Tip/corner Position"
+            object_radius.label = "Cone Height"
+            cone_angle.visible = True
+            cone_axis.visible = True
+            page.update()
+
+
+        def add_Ellipsoid_ui(e):
+            remove_ui()
+            object_position.visible = True
+            object_position.label = "Object Position"
+            object_abc.visible = True
+            page.update()
+            
+        def add_Cylinder_ui(e):
+            remove_ui()
+            object_position.visible = True
+            object_position.label = "Object Position"
+            cylinder_allignment.visible = True
+            cylinder_radius.visible = True
+            cylinder_radius.label = "Cylinder Radius"
+            object_radius.visible = True
+            object_radius.label = "Cylinder Height"
+            page.update()
+
+        def remove_ui():
+            for x in object_tile.controls:
+                if x._get_control_name() == "text":
+                    if x.value == "Stopper":
+                        print("stopped")
+                        break
+                    else:
+                        x.visible = False
+                elif x._get_control_name() == "dropdown":
+                    if x.label == "Object Type":
+                        pass
+                    else:
+                        x.visible = False
+                else:
+                    x.visible = False
+
+            
         
         render_name = ft.TextField(label="Render Name",hint_text="e.g., My_Render", width=600,border_color=ft.colors.GREEN_800)
         light_pos = ft.TextField(label="Light Source Postion",hint_text="e.g. x, y, z", width=600,border_color=ft.colors.GREEN_800)
@@ -832,18 +962,51 @@ def main(page):
         object_type = ft.Dropdown(
             label="Object Type",
             options=[ft.dropdown.Option("Sphere",on_click= add_Sphere_ui),
-                     ft.dropdown.Option("Floor",on_click= remove_non_floor_ui),
-                     ft.dropdown.Option("Cone",on_click= remove_non_floor_ui),],
+                     ft.dropdown.Option("Floor",on_click= add_floor_ui),
+                     ft.dropdown.Option("Cone",on_click= add_cone_ui),
+                     ft.dropdown.Option("Ellipsoid",on_click= add_Ellipsoid_ui),
+                     ft.dropdown.Option("Cylinder",on_click= add_Cylinder_ui),
+                     ],
             width=150,
             border_color= ft.colors.GREEN_800,
         )
-        
+   
         
         pb = ft.ProgressBar(width=400)
         pb.visible = False
         set = MyButton(text="Set", on_click=set_name)
         object_position = ft.TextField(label="Object Position", hint_text="e.g., (x, y, z)", width=150,border_color=ft.colors.GREEN_800)
         object_radius = ft.TextField(label="Object Radius", hint_text="e.g., 0.5", width=150,border_color=ft.colors.GREEN_800)
+
+        cone_axis = ft.TextField(label="Cone Axis", hint_text="e.g., (x, y, z)", width=150,border_color=ft.colors.GREEN_800)
+        cone_angle = ft.TextField(label="Cone Angle", hint_text="e.g., 45", width=150,border_color=ft.colors.GREEN_800)
+        cone_axis.visible = False
+        cone_angle.visible = False
+
+
+
+        object_abc = ft.Row(
+            [
+            IntField("X radius",0,100,1,1),
+            IntField("Y radius",0,100,1,1),
+            IntField("X radius",0,100,1,1),]
+        )
+        object_abc.visible = False
+
+        cylinder_allignment = ft.Dropdown(
+            label="Cylinder Allignment",
+            options=[ft.dropdown.Option("Horizontal(X)"),
+                     ft.dropdown.Option("Vertical(y)"),
+                     ft.dropdown.Option("Depth(z)"),
+                     ],
+            width=150,
+            border_color= ft.colors.GREEN_800,
+        )
+        cylinder_radius = ft.TextField(label="Cylinder Radius", hint_text="e.g., 0.5", width=150,border_color=ft.colors.GREEN_800)
+        #cylinder height is object radius
+        cylinder_radius.visible = False
+        cylinder_allignment.visible = False
+
         Ambient_input = IntField("Ambient",0,1)
         Diffuse_input = IntField("Diffuse",0,1,0.5)
         Specular_input = IntField("Specular",0,1,0.5)
@@ -1123,8 +1286,30 @@ def main(page):
             ],
             alignment=ft.MainAxisAlignment.CENTER,
         )
-
         
+        stopper = ft.Text("Stopper")
+        stopper.visible = False
+        
+        object_tile = ft.Row(
+            [
+                object_type,
+                object_position,
+                object_abc,
+                cylinder_allignment,
+                cone_axis,
+                cone_angle,
+                object_radius,  #sometimes height
+                cylinder_radius,
+                stopper,
+                material_tile,
+                material_type,
+                ft.Column([texture_type,checker_board_colour_buttons]),
+                colour_button,
+                add_object_button,
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            spacing=10,
+        )
    
       
 
@@ -1158,22 +1343,7 @@ def main(page):
                     ft.Row([width_input, height_input], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Row([current_width, current_height], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Text("Objects", size=16, weight=ft.FontWeight.BOLD),
-                    ft.Row(
-                        [
-                            object_type,
-                            object_position,
-                            object_radius,
-                            material_tile,
-
-                            material_type,
-                            ft.Column([texture_type,checker_board_colour_buttons]),
-                            
-                            colour_button,
-                            add_object_button,
-                        ],
-                        alignment=ft.MainAxisAlignment.CENTER,
-                        spacing=10,
-                    ),
+                    object_tile,
                     obj_error_message,
                     ft.Text("Added Objects:"),
                     added_objects,  # Display added objects

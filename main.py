@@ -7,8 +7,8 @@ from scene import Scene,camera
 from light import light
 from loginsys import create_user,login_user,get_user_id
 from scenes_table import create_scene,get_scenes,get_scene_names,remove_scene
-from material import *
-
+from material import material
+from textures import *
 
 #3rd part libraries
 import flet as ft
@@ -472,8 +472,10 @@ def main(page):
                 
                 added_objects.controls.append(
                     ft.Row(
-                        [(ft.Text(f"Type: {object_type.value},Radius {object_radius.value}, Position: {object_position.value}, Color: {selected_color}")),Remove_ButtonLite(text="Remove", on_click=lambda e: remove_object(e, myobj1))] , alignment=ft.MainAxisAlignment.CENTER
-                        
+                        [(ft.Text(f"Type: {object_type.value} Position: {object_position.value}, Color: {selected_color}")),
+                         Remove_ButtonLite(text="Remove", on_click=lambda e: remove_object(e, myobj1)),
+                         Remove_ButtonLite(text="Save Object", on_click=None),] , 
+                         alignment=ft.MainAxisAlignment.CENTER
                     ),
                 
                 )
@@ -494,10 +496,10 @@ def main(page):
         
 
         
-        def minus_click(text_field,mininum):
-            value = round(float(text_field.value) - 0.1, 1)
-            if value < mininum:
-                obj_error_message.value = "Coefficients must be between 0.0 and 1.0"
+        def minus_click(text_field,minimum,step):
+            value = round(float(text_field.value) - step, 1)
+            if value <= minimum:
+                obj_error_message.value = f"Coefficients must be more than {minimum}"
                 obj_error_message.visible = True
             else:
                 obj_error_message.visible = False
@@ -506,10 +508,10 @@ def main(page):
             page.update()
         
         
-        def plus_click(text_field,maximum):
-            value = round(float(text_field.value) + 0.1, 1)
+        def plus_click(text_field,maximum,step):
+            value = round(float(text_field.value) + step, 1)
             if value > maximum:
-                obj_error_message.value = "Coefficients must be between 0.0 and 1.0"
+                obj_error_message.value = f"Coefficients must be less than {maximum}"
                 obj_error_message.visible = True
             else:
                 obj_error_message.visible = False
@@ -588,7 +590,7 @@ def main(page):
         
   
         class IntField(ft.Container):
-            def __init__(self,name,min,max,default="0.0"):
+            def __init__(self,name,min,max,default="0.0",step=0.1):
                 super().__init__()
                 self.text_field = ft.TextField(
                     label=str(name),
@@ -600,14 +602,14 @@ def main(page):
                     [
                         ft.IconButton(
                             icon=ft.icons.REMOVE, 
-                            on_click=lambda e: minus_click(self.text_field,min),
+                            on_click=lambda e: minus_click(self.text_field,min,step),
                             icon_size=20,
                             padding= 1
                         ),
                         self.text_field,
                         ft.IconButton(
                             icon=ft.icons.ADD, 
-                            on_click=lambda e: plus_click(self.text_field,max),
+                            on_click=lambda e: plus_click(self.text_field,max,step),
                             icon_size= 20,
                             padding= 1
                         ),
@@ -918,7 +920,7 @@ def main(page):
             object_position.visible = True
             object_position.label = "Object Position"
             object_abc.visible = True
-            object_radius.visible = False
+            page.update()
             
         def add_Cylinder_ui(e):
             remove_ui()
@@ -987,9 +989,9 @@ def main(page):
 
         object_abc = ft.Row(
             [
-            IntField("X radius",0,100,1),
-            IntField("Y radius",0,100,1),
-            IntField("X radius",0,100,1),]
+            IntField("X radius",0,100,1,1),
+            IntField("Y radius",0,100,1,1),
+            IntField("X radius",0,100,1,1),]
         )
         object_abc.visible = False
 

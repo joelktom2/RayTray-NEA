@@ -6,8 +6,9 @@ from engine import engine
 from light import light
 import cv2
 import matplotlib.pyplot as plt
-from objects import Plane
-from material import checker_texture
+
+from material import material
+from textures import *
 import math
 
 def render(file):    
@@ -32,12 +33,12 @@ myobj = Sphere(Vector(0, 0, 5), 1.5, colour(0,0,1),[0.6,0.2,0.2,0.4])   #low ref
 
 
 mycam = camera(Vector(0, 0, -1))
-s1 = Sphere(Vector(0,0,2), 0.5, None,[0.5,0.5,0.0,0.0],checker_texture())
-p1 = Plane(Vector(0,3,0),Vector(0,-1,0))
-ls = Sphere(Vector(0,10000.5,1), 10000, None,[0.5,0.5,0.0,0.0],checker_texture())
+s1 = Sphere(Vector(0,0,2), 0.5, None,[0.5,0.5,0.0,0.0],GradientTexture())
+
+ls = Sphere(Vector(0,10000.5,1), 10000, None,[0.5,0.5,0.0,0.0],GradientTexture())
 c1 = Cone(Vector(0,-5.5,5),Vector(0,1,0),math.pi/6,5,colour(1,0,0),[0.5,0.5,0.0,0.0])
 e1 = Ellipsoid(Vector(0,0,5),Vector(3,50,3),colour(0,1,0),[0.5,0.5,0.0,0.0],checker_texture())
-cy1 = Cylinder(Vector(0,-2,5),"y",2,1,colour(1,0,0),[0.5,0.5,0.0,0.0])
+cy1 = Cylinder(Vector(0,-2,5),"x",2,1,colour(1,0,0),[0.5,0.5,0.0,0.0],GradientTexture())
 objects = []
 objects.append(cy1)
 

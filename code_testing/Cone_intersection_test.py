@@ -1,10 +1,9 @@
 import sys
 import os
-import unittest
-import math
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+import unittest
+import math
 from Maths import Vector, Ray
 from objects import Cone
 
