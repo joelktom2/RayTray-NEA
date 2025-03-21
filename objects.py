@@ -3,27 +3,27 @@ from material import material
 from image import colour
 from Maths import Vector
 
-class Plane():
+# class Plane():
     
-    def __init__(self, point, normal,colour=colour(0,0,1),mat = [0.5,0.0,0.0]):
-        self.point = point
-        self.normal = normal
-        self.colour = colour        # colour of the sphere (r,g,b)
-        self.material = material(colour,mat[0],mat[1],mat[2])  # material properties of the sphere
+#     def __init__(self, point, normal,colour=colour(0,0,1),mat = [0.5,0.0,0.0]):
+#         self.point = point
+#         self.normal = normal
+#         self.colour = colour        # colour of the sphere (r,g,b)
+#         self.material = material(colour,mat[0],mat[1],mat[2])  # material properties of the sphere
         
 
-    def __str__(self):
-        return "{}x + {}y + {}z = {}".format(self.normal.x, self.normal.y, self.normal.z, self.point.dp(self.normal))
+#     def __str__(self):
+#         return "{}x + {}y + {}z = {}".format(self.normal.x, self.normal.y, self.normal.z, self.point.dp(self.normal))
 
-    def intersects(self, ray):
-        t = (self.point - ray.origin).dp(self.normal) / ray.direction.dp(self.normal)
+#     def intersects(self, ray):
+#         t = (self.point - ray.origin).dp(self.normal) / ray.direction.dp(self.normal)
         
-        if t < 0:
-            return None
-        return ray.point(t)   # returns the point of intersection of the ray with the plane
+#         if t < 0:
+#             return None
+#         return ray.point(t)   # returns the point of intersection of the ray with the plane
     
-    def get_normal(self, point):
-        return self.normal.norm()
+#     def get_normal(self, point):
+#         return self.normal.norm()
 
 class Sphere():
     def __init__(self, center, radius,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):

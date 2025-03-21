@@ -1,10 +1,9 @@
-from Maths import Vector, Ray
-from objects import Ellipsoid
-import math
+def activate_drone():
+    print('Activating workspace2')
 
-ray = Ray(Vector(1, -5, 0), Vector(0, 1, 0))
-cone = Ellipsoid(Vector(0, 0, 0), Vector(0, 1, 0), math.radians(45))
+def joel(func_name):
+    globals()[f"{func_name}_drone"]()
+    
+    
 
-intersection = cone.intersects(ray)
-
-print(intersection)
+joel("activate")
