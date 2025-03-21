@@ -353,7 +353,7 @@ def main(page):
                 obj_error_message.visible = True
                 page.update()
                 return False
-            elif cone_angle.value >=0 and cone_angle.value <= 90:
+            elif float(cone_angle.value) <=0.0 or float(cone_angle.value) >= 90.0:
                 obj_error_message.value = "Please enter a valid angle between 0 and 90 degrees"
                 obj_error_message.visible = True
                 page.update()
@@ -403,7 +403,7 @@ def main(page):
                 elif object_type.value == "Cone":
                     tip = string_coords_to_Vector(object_position.value)
                     axis = string_coords_to_Vector(cone_axis.value)
-                    angle = float(math.radians(cone_angle.value))
+                    angle = float(math.radians(float(cone_angle.value)))
                     height = float(object_radius.value)
                     myobj1 = Cone(tip,axis,angle,height,colour.hex_to_rgb(selected_color),obj_material,object_texture)
                 else:

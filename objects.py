@@ -1,9 +1,29 @@
 import math
 from material import material
 from image import colour
+from Maths import Vector
 
+class Plane():
+    
+    def __init__(self, point, normal,colour=colour(0,0,1),mat = [0.5,0.0,0.0]):
+        self.point = point
+        self.normal = normal
+        self.colour = colour        # colour of the sphere (r,g,b)
+        self.material = material(colour,mat[0],mat[1],mat[2])  # material properties of the sphere
+        
 
+    def __str__(self):
+        return "{}x + {}y + {}z = {}".format(self.normal.x, self.normal.y, self.normal.z, self.point.dp(self.normal))
 
+    def intersects(self, ray):
+        t = (self.point - ray.origin).dp(self.normal) / ray.direction.dp(self.normal)
+        
+        if t < 0:
+            return None
+        return ray.point(t)   # returns the point of intersection of the ray with the plane
+    
+    def get_normal(self, point):
+        return self.normal.norm()
 
 class Sphere():
     def __init__(self, center, radius,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
@@ -117,7 +137,7 @@ class Cone():
             if t < 0:
                 return False
             point = ray.point(t)
-            h = (point - self.tip).dp(V)
+            h = abs((point - self.tip).dp(V))
             if self.height:
                 h_max = self.height 
                 return h >= 0 and h <= h_max
@@ -144,31 +164,138 @@ class Cone():
         return ray.point(min(intersections)) if intersections else None
 
 
-       
-
-class Plane():
-    
-    def __init__(self, point, normal,colour=colour(0,0,1),mat = [0.5,0.0,0.0]):
-        self.point = point
-        self.normal = normal
-        self.colour = colour        # colour of the sphere (r,g,b)
-        self.material = material(colour,mat[0],mat[1],mat[2])  # material properties of the sphere
+class Cylinder():  
+    def __init__(self,center,allingment,height,radius,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
+        self.center = center       # (x,y,z) coordinates of the center of the Ellipsoid
+        if allingment == 'x':
+            self.axis = Vector(1,0,0)
+            self.abc = Vector(100,radius,radius)
+        elif allingment == 'y':
+            self.axis = Vector(0,1,0)
+            self.abc = Vector(radius,100,radius)
+        elif allingment == 'z':
+            self.axis = Vector(0,0,1)
+            self.abc = Vector(radius,radius,100)
+        self.height = height
+        self.radius = radius   #  a b and c values of the ellipsoid
         
+        
+        
+        self.colour = colour        #base colour of the Ellipsoid (r,g,b)
+        self.material = material(colour,mat[0],mat[1],mat[2],mat[3],texture)  # material properties of the Ellipsoid
 
     def __str__(self):
-        return "{}x + {}y + {}z = {}".format(self.normal.x, self.normal.y, self.normal.z, self.point.dp(self.normal))
+        return f"Center: {self.center}, Radius: {self.abc}, Colour: {self.colour} texture : {self.material.texture}"
 
-    def intersects(self, ray):
-        t = (self.point - ray.origin).dp(self.normal) / ray.direction.dp(self.normal)
-        
-        if t < 0:
-            return None
-        return ray.point(t)   # returns the point of intersection of the ray with the plane
-    
     def get_normal(self, point):
-        return self.normal.norm()
+        return Vector((point.x - self.center.x) / self.abc.x**2,
+                      (point.y - self.center.y) / self.abc.y**2,
+                      (point.z - self.center.z) / self.abc.z**2).norm()
+    
+    def intersects(self, ray):
+        l = ray.origin - self.center
+        a = (ray.direction.x / self.abc.x)**2 + (ray.direction.y / self.abc.y)**2 + (ray.direction.z / self.abc.z)**2
+        b = 2 * ((l.x * ray.direction.x / self.abc.x**2) + (l.y * ray.direction.y / self.abc.y**2) + (l.z * ray.direction.z / self.abc.z**2))
+        c = (l.x / self.abc.x)**2 + (l.y / self.abc.y)**2 + (l.z / self.abc.z)**2 - 1
+        discriminant = b**2 - (4 * a * c)
+        
+        if discriminant < -1e-6:
+            return None
+            
+        elif discriminant == 0 or abs(discriminant) < 1e-6:
+            t =  (-(b)) /(2*a)
+            if t>= 0:
+                return ray.point(t)
+            else:
+                return None
+            
+        t1 =  (-(b) + (math.sqrt(b**2 - (4*a*c))) ) /(2*a)
+        t2 =  ( -(b) - (math.sqrt(b**2 - (4*a*c))) ) /(2*a)
 
 
+        def intersects_cap():
+            top_cap = self.center + self.axis * (self.height / 2)
+            bottom_cap = self.center + self.axis*(self.height / 2)
+            top = ((top_cap - ray.origin).dp(self.axis)) / ray.direction.dp(self.axis)
+            bottom = ((bottom_cap - ray.origin).dp(self.axis)) / ray.direction.dp(self.axis)
+            if top and bottom:
+                t_cap = min(top, bottom)
+                point_cap = ray.point(t_cap)
+                if ((point_cap - top_cap).mag())**2 <= self.radius ** 2:
+                    return t_cap
+                
+            elif top:
+                t_cap = top
+                point_cap = ray.point(t_cap)
+                if ((point_cap - top_cap).mag())**2 <= self.radius ** 2:
+                    return t_cap
+
+            elif bottom:
+                t_cap = bottom
+                point_cap = ray.point(t_cap)
+                if (point_cap - bottom_cap).mag2() <= self.radius ** 2:
+                    return t_cap
+            return None
+        
+        #height check
+        def is_valid(t):
+            if t < 0:
+                return False
+            point = ray.point(t)
+            # Project the vector (point - center) onto the axis to get height
+            height_projection = (point - self.center).dp(self.axis)
+            return abs(height_projection) <= (self.height/2) #hegiht
+        
+        intersections = [t for t in (t1, t2) if is_valid(t)]
+        t3 = intersects_cap()
+        if t3:
+            intersections.append(t3)
+        return ray.point(min(intersections)) if intersections else None
 
 
+class Ellipsoid():
+    def __init__(self,center,abc=Vector(1,1,1),colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
+        self.center = center       # (x,y,z) coordinates of the center of the Ellipsoid
+        self.abc =  abc      #  a b and c values of the ellipsoid
+        self.colour = colour        #base colour of the Ellipsoid (r,g,b)
+        self.material = material(colour,mat[0],mat[1],mat[2],mat[3],texture)  # material properties of the Ellipsoid
+
+    def __str__(self):
+        return f"Center: {self.center}, Radius: {self.abc}, Colour: {self.colour} texture : {self.material.texture}"
+
+    def get_normal(self, point):
+        return Vector((point.x - self.center.x) / self.abc.x**2,
+                      (point.y - self.center.y) / self.abc.y**2,
+                      (point.z - self.center.z) / self.abc.z**2).norm()
+    
+    def intersects(self, ray):
+        l = ray.origin - self.center
+        a = (ray.direction.x / self.abc.x)**2 + (ray.direction.y / self.abc.y)**2 + (ray.direction.z / self.abc.z)**2
+        b = 2 * ((l.x * ray.direction.x / self.abc.x**2) + (l.y * ray.direction.y / self.abc.y**2) + (l.z * ray.direction.z / self.abc.z**2))
+        c = (l.x / self.abc.x)**2 + (l.y / self.abc.y)**2 + (l.z / self.abc.z)**2 - 1
+        discriminant = b**2 - (4 * a * c)
+        
+        if discriminant < -1e-6:
+            return None
+            
+        elif discriminant == 0 or abs(discriminant) < 1e-6:
+            t =  (-(b)) /(2*a)
+            if t>= 0:
+                return ray.point(t)
+            else:
+                return None
+            
+        t1 =  (-(b) + (math.sqrt(b**2 - (4*a*c))) ) /(2*a)
+        t2 =  ( -(b) - (math.sqrt(b**2 - (4*a*c))) ) /(2*a)
+    
+        if t1 >= 0 and t2>= 0:
+            return ray.point(min(t1, t2))                
+        
+        elif t1 >= 0:
+            return ray.point(t1)  
+        
+        elif t2 >= 0:
+            return ray.point(t2)  
+        else:
+            return None
 
