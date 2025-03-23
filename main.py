@@ -427,6 +427,11 @@ def main(page):
                 obj_error_message.visible = False
                 
                 if texture_type.value == "Checkerboard":
+                    if checker_colour1 == None or checker_colour2 == None:
+                        obj_error_message.value = "Please select both colours for the checkerboard"
+                        obj_error_message.visible = True
+                        page.update()
+                        return
                     object_texture = checker_texture(colour.hex_to_rgb(checker_colour1),colour.hex_to_rgb(checker_colour2))
                 else:
                     object_texture = None
@@ -439,7 +444,7 @@ def main(page):
                 print(material_type.value)
                 
                 if object_type.value == "Floor":
-                    myobj1 = Sphere(Vector(0,10000.5,1), 10000, colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                    myobj1 = Floor(colour.hex_to_rgb(selected_color),obj_material,object_texture)
                 elif object_type.value == "Cone":
                     tip = string_coords_to_Vector(object_position.value)
                     axis = string_coords_to_Vector(cone_axis.value)
@@ -474,7 +479,7 @@ def main(page):
                     ft.Row(
                         [(ft.Text(f"Type: {object_type.value} Position: {object_position.value}, Color: {selected_color}")),
                          Remove_ButtonLite(text="Remove", on_click=lambda e: remove_object(e, myobj1)),
-                         Remove_ButtonLite(text="Save Object", on_click=None),] , 
+                         Remove_ButtonLite(text="Save Object", on_click=lambda e: save_object(e, myobj1)) ,] , 
                          alignment=ft.MainAxisAlignment.CENTER
                     ),
                 
@@ -488,7 +493,14 @@ def main(page):
             added_objects.controls.pop(onum)
             page.update()
         
-        
+        def save_object(e,object):   #saves object to user
+            if User_Status:
+                pass # save to user data
+            else:
+                pass # save to local data
+
+
+
         def update_dimensions(e):   #updates the dimensions of the scene dynamically 
             current_width.value = f"Current Width: {width_input.value}"
             current_height.value = f"Current Height: {height_input.value}"

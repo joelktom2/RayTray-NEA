@@ -1,9 +1,18 @@
-def activate_drone():
-    print('Activating workspace2')
+from Maths import Vector
+class Dog:
+    def __init__(self,name):
+        self.name = name
+        
+    def bark(self):
+        print(self.name +str(len(self.name)*"woof"))
 
-def joel(func_name):
-    globals()[f"{func_name}_drone"]()
-    
-    
+class shiba(Dog):
+    def __init__(self,name):
+        super().__init__(name)
+        
 
-joel("activate")
+        
+jack = shiba("joek")
+print((getattr(jack,"pos",None)).values())
+
+

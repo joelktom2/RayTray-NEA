@@ -75,7 +75,10 @@ class Sphere():
         else:
             return None 
         
-           
+class Floor(Sphere):
+    def __init__(self,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
+        super().__init__(Vector(0,10000.5,1), 10000, colour, mat, texture)
+    
 
 class Cone():
     def __init__(self, tip,axis,angle,height=None,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):

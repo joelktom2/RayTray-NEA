@@ -10,8 +10,8 @@ class Vector():
         return f"[{self.x},{self.y},{self.z}]"
     
     def values(self):
-        list = [self.x,self.y,self.z]
-        print(list)
+        return [self.x,self.y,self.z]
+        
 
     def __eq__(self, other):
         if isinstance(other, Vector):

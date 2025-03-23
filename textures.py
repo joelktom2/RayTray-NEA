@@ -18,6 +18,8 @@ class checker_texture:
         else:
             return self.colour2
         
+    
+        
 
 
 class GradientTexture:

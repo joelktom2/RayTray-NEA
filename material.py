@@ -15,3 +15,5 @@ class material():
             return self.texture.get_colour(point)
 
 
+    def values(self):
+        return [self.diffuse, self.specular, self.ambient, self.reflectivity]

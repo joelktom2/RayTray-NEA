@@ -1,2 +1,5 @@
-intersections = [1,2,3]
-print(min(intersections))
+from image import colour
+
+c1 = colour(1, 0, 0)
+x = c1.values()
+print(x)

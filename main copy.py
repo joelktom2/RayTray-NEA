@@ -472,8 +472,10 @@ def main(page):
                 
                 added_objects.controls.append(
                     ft.Row(
-                        [(ft.Text(f"Type: {object_type.value} Position: {object_position.value}, Color: {selected_color}")),Remove_ButtonLite(text="Remove", on_click=lambda e: remove_object(e, myobj1))] , alignment=ft.MainAxisAlignment.CENTER
-                        
+                        [(ft.Text(f"Type: {object_type.value} Position: {object_position.value}, Color: {selected_color}")),
+                         Remove_ButtonLite(text="Remove", on_click=lambda e: remove_object(e, myobj1)),
+                         Remove_ButtonLite(text="Save Object", on_click=None),] , 
+                         alignment=ft.MainAxisAlignment.CENTER
                     ),
                 
                 )

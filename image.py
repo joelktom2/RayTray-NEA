@@ -1,7 +1,6 @@
 from Maths import Vector 
 
 
-
 class colour(Vector):
     
     def hex_to_rgb(hex):         # converts hex colour to rgb colour
