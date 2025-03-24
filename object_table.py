@@ -52,3 +52,8 @@ def save_object(user_id, obj):
     connection.commit()
     connection.close()
     print("Object saved successfully!")
+
+def load_objects(user_id):
+    connection = sqlite3.connect('data.db')
+    cursor = connection.cursor()
+    
