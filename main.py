@@ -7,6 +7,7 @@ from scene import Scene,camera
 from light import light
 from loginsys import create_user,login_user,get_user_id
 from scenes_table import create_scene,get_scenes,get_scene_names,remove_scene
+from object_table import save_object,load_objects,load_object
 from material import material
 from textures import *
 
@@ -33,8 +34,7 @@ def main(page):
     global User_Status  
     User_Status = None
 
-    global saved_objects
-    saved_objects = []
+
     
     def switch_theme(e):
         if page.theme_mode == ft.ThemeMode.LIGHT:
@@ -91,6 +91,8 @@ def main(page):
         global User_Status
         User_Status = False
         error_message.visible = False
+        global saved_objects
+        saved_objects = []
         switch_to_main_ui(e)
 
     def register(e):
@@ -123,7 +125,8 @@ def main(page):
         global User_Status
         User_Status = True
 
-        
+        global saved_objects
+        saved_objects = []
 
         switch_to_main_ui(e)
     
@@ -158,7 +161,8 @@ def main(page):
         User_Status = True
         
 
-
+        global saved_objects
+        saved_objects = []
         
         switch_to_main_ui(e)   #switches to the main UI when the user logs in successfully
     
@@ -411,7 +415,52 @@ def main(page):
             x, y, z = map(int, position_parts)
             return Vector(x, y, z)
         
-    
+        def get_colour(list):
+            return colour(list[0],list[1],list[2])
+        
+        def build_custom_object(obj_data):
+            
+
+            if obj_data["texture"] == "checker_texture":
+                texture_colour1 = get_colour(obj_data["texture"]["colour1"])
+                texture_colour2 = get_colour(obj_data["texture"]["colour2"])
+                texture = checker_texture(texture_colour1,texture_colour2)
+            else:
+                texture = None
+            obj_material = [float(obj_data["material"][0]),float(obj_data["material"][1]),float(obj_data["material"][2]),float(obj_data["material"][3])] 
+            obj_colour = get_colour(obj_data["colour"])
+            if obj_data["type"] == "Floor":
+                myobj1 = Floor(obj_colour,obj_material,texture)
+            
+            elif obj_data["type"] == "Sphere":
+                position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
+                radius = float(obj_data["radius"])
+                myobj1 = Sphere(position, radius,obj_colour,obj_material,texture)
+            elif obj_data["type"] == "Cone":
+                tip = Vector(obj_data["tip"][0],obj_data["tip"][1],obj_data["tip"][2])
+                axis = Vector(obj_data["cone_axis"][0],obj_data["cone_axis"][1],obj_data["cone_axis"][2])
+                angle = float(obj_data["cone_angle"])
+                height = float(obj_data["height"])
+                myobj1 = Cone(tip,axis,angle,height,obj_colour,obj_material,texture)
+            elif obj_data["type"] == "Ellipsoid":
+                position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
+                abc = Vector(obj_data["abc"][0],obj_data["abc"][1],obj_data["abc"][2])
+                myobj1 = Ellipsoid(position, abc,obj_colour,obj_material,texture)
+            elif obj_data["type"] == "Cylinder":
+                position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
+                radius = float(obj_data["cylinder_radius"])
+                height = float(obj_data["height"])
+                if obj_data["cylinder_allignment"] == "Horizontal(X)":
+                    myobj1 = Cylinder(position,"x",height,radius,obj_colour,obj_material,texture)
+                elif obj_data["cylinder_allignment"] == "Vertical(y)":
+                    myobj1 = Cylinder(position,"y",height,radius,obj_colour,obj_material,texture)
+                else:
+                    myobj1 = Cylinder(position,"z",height,radius,obj_colour,obj_material,texture)
+            
+            return myobj1
+
+
+
         def add_object(e):   #adds an object to the scene
             
             if object_type.value == None:
@@ -431,7 +480,12 @@ def main(page):
             
             else:
                 if object_type.value.startswith("Custom"):
-                    myobj1 = saved_objects[int(object_type.value[6:])]
+                    if ":" in object_type.value:
+                        hyphen = object_type.value.find("-")
+                        obj_id = int(object_type.value[7:hyphen])
+                        myobj1 = build_custom_object(load_object(get_user_id(username.value),obj_id))
+                    else:
+                        myobj1 = saved_objects[int(object_type.value[6:])]
                 else:
                     obj_error_message.visible = False
                     
@@ -484,7 +538,7 @@ def main(page):
                     ft.Row(
                         [(ft.Text(f"Type: {object_type.value} Position: {object_position.value}, Color: {selected_color}")),
                          Remove_ButtonLite(text="Remove", on_click=lambda e: remove_object(e, myobj1)),
-                         Remove_ButtonLite(text="Save Object", on_click=lambda e: save_object(e, myobj1)) ,] , 
+                         Remove_ButtonLite(text="Save Object", on_click=lambda e: save_custom_object(e, myobj1)) ,] , 
                          alignment=ft.MainAxisAlignment.CENTER
                     ),
                 
@@ -498,15 +552,35 @@ def main(page):
             added_objects.controls.pop(onum)
             page.update()
         
-        def save_object(e,object):   #saves object to user
+        def save_custom_object(e,object):   #saves object to user
             if User_Status:
-                pass # save to user data
+                global custom_object
+                custom_object = object                
+                page.open(custom_object_name_dlg)
+                page.update()
             else:
                 if len(saved_objects) > 0:
                     obj_num = saved_objects.index(object)
                     obj_name = "Custom" + str(obj_num)
                 else:
                     obj_name = "Custom0"
+                object_type.options.append(ft.dropdown.Option(obj_name,on_click= add_custom_ui)) # saved locally via list
+                saved_objects.append(object)
+                obj_error_message.value = "Object saved and can be accessed in object type"
+                obj_error_message.visible = True
+                page.update()
+        
+        def on_object_name_submit():
+                object = custom_object
+                object_name = custom_object_name.value
+                save_object(get_user_id(username.value),object,object_name)
+                
+                if len(saved_objects) > 0:
+                    obj_num = saved_objects.index(object)
+                    obj_name = "Custom" + str(obj_num)
+                else:
+                    obj_name = "Custom0"
+                
                 object_type.options.append(ft.dropdown.Option(obj_name,on_click= add_custom_ui)) # saved locally via list
                 saved_objects.append(object)
                 obj_error_message.value = "Object saved and can be accessed in object type"
@@ -870,7 +944,14 @@ def main(page):
         
         
         
-        
+
+        def load_custom_objects_to_ui():
+            if User_Status:
+                custom_objects = load_objects(get_user_id(username.value))
+                for obj in custom_objects:
+                    object_type.options.append(ft.dropdown.Option(f"Custom:{obj[0]}-{obj[1]}",on_click= add_custom_ui))
+                page.update()
+                        
         img_carousel = ft.Row(expand=1, wrap=False, scroll="always")
         
         def edit(src):
@@ -979,8 +1060,25 @@ def main(page):
                 else:
                     x.visible = False
 
-            
+        def close_custom_object_dlg(e):
+            page.close(custom_object_name_dlg)
+            page.update()
+            on_object_name_submit()
         
+        custom_object_name = ft.TextField(label="Object Name",hint_text="e.g., MyFavouriteSphere", width=600,border_color=ft.colors.GREEN_800)
+        custom_object_name_dlg = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Please confirm a name for custom object"),
+            content=custom_object_name,
+            actions=[
+                ft.TextButton("Ok", on_click=close_custom_object_dlg),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+
+    
+        
+
         render_name = ft.TextField(label="Render Name",hint_text="e.g., My_Render", width=600,border_color=ft.colors.GREEN_800)
         light_pos = ft.TextField(label="Light Source Postion",hint_text="e.g. x, y, z", width=600,border_color=ft.colors.GREEN_800)
         cam_pos = ft.TextField(label= "Camera Postion",hint_text="e.g. x, y, z", width=600,border_color=ft.colors.GREEN_800)
@@ -1002,6 +1100,8 @@ def main(page):
             width=150,
             border_color= ft.colors.GREEN_800,
         )
+
+        load_custom_objects_to_ui()
    
         
         pb = ft.ProgressBar(width=400)

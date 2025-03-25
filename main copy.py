@@ -7,6 +7,7 @@ from scene import Scene,camera
 from light import light
 from loginsys import create_user,login_user,get_user_id
 from scenes_table import create_scene,get_scenes,get_scene_names,remove_scene
+from object_table import save_object,get_object_data,load_objects
 from material import material
 from textures import *
 
@@ -32,6 +33,8 @@ def main(page):
     
     global User_Status  
     User_Status = None
+
+
     
     def switch_theme(e):
         if page.theme_mode == ft.ThemeMode.LIGHT:
@@ -88,6 +91,8 @@ def main(page):
         global User_Status
         User_Status = False
         error_message.visible = False
+        global saved_objects
+        saved_objects = []
         switch_to_main_ui(e)
 
     def register(e):
@@ -120,7 +125,8 @@ def main(page):
         global User_Status
         User_Status = True
 
-        
+        global saved_objects
+        saved_objects = []
 
         switch_to_main_ui(e)
     
@@ -155,7 +161,8 @@ def main(page):
         User_Status = True
         
 
-
+        global saved_objects
+        saved_objects = []
         
         switch_to_main_ui(e)   #switches to the main UI when the user logs in successfully
     
@@ -400,6 +407,9 @@ def main(page):
                 return False
             return True
         
+       
+
+        
         def string_coords_to_Vector(value):
             position_parts = value.split(",")
             x, y, z = map(int, position_parts)
@@ -423,58 +433,65 @@ def main(page):
             elif object_type.value == "Cylinder" and validate_inputs_for_Cylinder() == False:
                 pass
             
-            else: 
-                obj_error_message.visible = False
-                
-                if texture_type.value == "Checkerboard":
-                    object_texture = checker_texture(colour.hex_to_rgb(checker_colour1),colour.hex_to_rgb(checker_colour2))
-                else:
-                    object_texture = None
-                
-                
-
-                obj_material = [float(Diffuse_input.text_field.value),float(Specular_input.text_field.value),float(Ambient_input.text_field.value),float(reflectivity_input.text_field.value)] 
-                
-                print(obj_material)
-                print(material_type.value)
-                
-                if object_type.value == "Floor":
-                    myobj1 = Sphere(Vector(0,10000.5,1), 10000, colour.hex_to_rgb(selected_color),obj_material,object_texture)
-                elif object_type.value == "Cone":
-                    tip = string_coords_to_Vector(object_position.value)
-                    axis = string_coords_to_Vector(cone_axis.value)
-                    angle = float(math.radians(float(cone_angle.value)))
-                    height = float(object_radius.value)
-                    myobj1 = Cone(tip,axis,angle,height,colour.hex_to_rgb(selected_color),obj_material,object_texture)
-                elif object_type.value == "Ellipsoid":
-                    position = string_coords_to_Vector(object_position.value)
-                    a = float(object_abc.controls[0].value)
-                    b = float(object_abc.controls[1].value)
-                    c = float(object_abc.controls[2].value)
-                    abc = Vector(a,b,c)
-                    myobj1 = Ellipsoid(position, abc,colour.hex_to_rgb(selected_color),obj_material,object_texture)
-                elif object_type.value == "Cylinder":
-                    position = string_coords_to_Vector(object_position.value)
-                    radius = float(cylinder_radius.value)
-                    height = float(object_radius.value)
-                    if cylinder_allignment.value == "Horizontal(X)":
-                        myobj1 = Cylinder(position,"x",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
-                    elif cylinder_allignment.value == "Vertical(y)":
-                        myobj1 = Cylinder(position,"y",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+            else:
+                if object_type.value.startswith("Custom"):
+                    if User_Status:
+                        pass
                     else:
-                        myobj1 = Cylinder(position,"z",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                        myobj1 = saved_objects[int(object_type.value[6:])]
                 else:
-                    position = string_coords_to_Vector(object_position.value)
-                    myobj1 = globals()[object_type.value](position, float(object_radius.value),colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                    obj_error_message.visible = False
+                    
+                    if texture_type.value == "Checkerboard":
+                        if checker_colour1 == None or checker_colour2 == None:
+                            obj_error_message.value = "Please select both colours for the checkerboard"
+                            obj_error_message.visible = True
+                            page.update()
+                            return
+                        object_texture = checker_texture(colour.hex_to_rgb(checker_colour1),colour.hex_to_rgb(checker_colour2))
+                    else:
+                        object_texture = None
+                    
+                    obj_material = [float(Diffuse_input.text_field.value),float(Specular_input.text_field.value),float(Ambient_input.text_field.value),float(reflectivity_input.text_field.value)] 
+
+                    print(obj_material)
+                    print(material_type.value)
+                    if object_type.value == "Floor":
+                        myobj1 = Floor(colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                    elif object_type.value == "Cone":
+                        tip = string_coords_to_Vector(object_position.value)
+                        axis = string_coords_to_Vector(cone_axis.value)
+                        angle = float(math.radians(float(cone_angle.value)))
+                        height = float(object_radius.value)
+                        myobj1 = Cone(tip,axis,angle,height,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                    elif object_type.value == "Ellipsoid":
+                        position = string_coords_to_Vector(object_position.value)
+                        a = float(object_abc.controls[0].value)
+                        b = float(object_abc.controls[1].value)
+                        c = float(object_abc.controls[2].value)
+                        abc = Vector(a,b,c)
+                        myobj1 = Ellipsoid(position, abc,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                    elif object_type.value == "Cylinder":
+                        position = string_coords_to_Vector(object_position.value)
+                        radius = float(cylinder_radius.value)
+                        height = float(object_radius.value)
+                        if cylinder_allignment.value == "Horizontal(X)":
+                            myobj1 = Cylinder(position,"x",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                        elif cylinder_allignment.value == "Vertical(y)":
+                            myobj1 = Cylinder(position,"y",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                        else:
+                            myobj1 = Cylinder(position,"z",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                    else:
+                        position = string_coords_to_Vector(object_position.value)
+                        myobj1 = globals()[object_type.value](position, float(object_radius.value),colour.hex_to_rgb(selected_color),obj_material,object_texture)
                 
                 scene_objects.append(myobj1)
-                
-                
+            
                 added_objects.controls.append(
                     ft.Row(
                         [(ft.Text(f"Type: {object_type.value} Position: {object_position.value}, Color: {selected_color}")),
                          Remove_ButtonLite(text="Remove", on_click=lambda e: remove_object(e, myobj1)),
-                         Remove_ButtonLite(text="Save Object", on_click=None),] , 
+                         Remove_ButtonLite(text="Save Object", on_click=lambda e: save_object(e, myobj1)) ,] , 
                          alignment=ft.MainAxisAlignment.CENTER
                     ),
                 
@@ -488,7 +505,23 @@ def main(page):
             added_objects.controls.pop(onum)
             page.update()
         
-        
+        def save_object(e,object):   #saves object to user
+            if User_Status:
+                pass # save to user data
+            else:
+                if len(saved_objects) > 0:
+                    obj_num = saved_objects.index(object)
+                    obj_name = "Custom" + str(obj_num)
+                else:
+                    obj_name = "Custom0"
+                object_type.options.append(ft.dropdown.Option(obj_name,on_click= add_custom_ui)) # saved locally via list
+                saved_objects.append(object)
+                obj_error_message.value = "Object saved and can be accessed in object type"
+                obj_error_message.visible = True
+                page.update()
+
+
+
         def update_dimensions(e):   #updates the dimensions of the scene dynamically 
             current_width.value = f"Current Width: {width_input.value}"
             current_height.value = f"Current Height: {height_input.value}"
@@ -844,6 +877,16 @@ def main(page):
         
         
         
+
+        # def load_custom_objects():
+        #     if User_Status:
+        #         custom_objects = load_objects(get_user_id(username.value))
+        #         for obj in custom_objects:
+        #             saved_objects.append(obj)
+        #             object_type.options.append(ft.dropdown.Option(f"Custom{len(saved_objects)-1}",on_click= add_custom_ui))
+
+
+
         
         img_carousel = ft.Row(expand=1, wrap=False, scroll="always")
         
@@ -890,6 +933,10 @@ def main(page):
         global selected_color
         selected_color = None  # Holds the selected colorrender
         
+        
+        def add_custom_ui(e):
+            remove_ui()
+            page.update()
         
         def add_floor_ui(e):
             remove_ui()

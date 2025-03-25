@@ -10,6 +10,7 @@ def init():
         ObjectID INTEGER PRIMARY KEY AUTOINCREMENT,
         UserID INTEGER,
         ObjectType TEXT NOT NULL,
+        ObjectName TEXT NOT NULL,
         ObjectData TEXT NOT NULL, -- JSON String
         CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (UserID) REFERENCES Users(UserID)
@@ -19,41 +20,83 @@ def init():
     connection.commit()
     connection.close()
 
-def save_object(user_id, obj):
-    connection = sqlite3.connect('data.db')
-    cursor = connection.cursor()
 
-    # Convert object data to JSON
+def get_object_data(obj):
+    
+    center = getattr(obj, "center", None)
+    if center != None:
+        center = center.values()
+    
+    tip = getattr(obj, 'tip', None)
+    if tip != None:
+        tip = tip.values()
+    
+    cone_axis = getattr(obj, 'axis', None)
+    if cone_axis != None:
+        cone_axis = cone_axis.values()
+    
     abc = getattr(obj, 'abc', None)
     if abc != None:
         abc = abc.values()
     
+    colour = (obj.colour)
+    if colour != None:
+        colour = colour.values()
+    
+    if obj.material.texture != None:
+        texture = obj.material.texture.__class__.__name__
+    else:
+        texture = None
+
     object_data = {
-        "center": getattr(obj, "center", None),
-        "tip": getattr(obj, 'tip', None),
+        "type" : obj.__class__.__name__,
+        "center": center,       
+        "tip": tip,       
         "abc": abc,
-        "cylinder_allignment": getattr(obj, 'allignment', None),
-        "cone_axis": getattr(obj, 'axis', None),
-        "cone_angle": getattr(obj, 'angle', None),
+        "cylinder_allignment": getattr(obj, 'allignment', None),   
+        "cone_axis": cone_axis,    
+        "cone_angle": getattr(obj, 'angle', None),    
         "height": getattr(obj, 'height', None),
         "radius": getattr(obj, 'radius', None),
         "cylinder_radius": getattr(obj, 'cylinder_radius', None),
-        "colour": (obj.colour).values(),
+        "colour": colour,    
         "material": (obj.material).values(),
-        "texture": (obj.texture).__class__.__name__,
+        "texture": texture,
     }
-    object_json = json.dumps(object_data)
+    return object_data
+
+
+def save_object(user_id, obj, obj_name):
+    connection = sqlite3.connect('data.db')
+    cursor = connection.cursor()
+
+    # Convert object data to JSON
+    object_json = json.dumps(get_object_data(obj))
 
     # Insert into database
     cursor.execute("""
-    INSERT INTO Objects (UserID, ObjectType, ObjectData) 
-    VALUES (?, ?, ?)
-    """, (user_id, obj.__class__.__name__, object_json))
+    INSERT INTO Objects (UserID, ObjectType,ObjectName, ObjectData) 
+    VALUES (?, ?, ?, ?)
+    """, (user_id, obj.__class__.__name__,obj_name,object_json))
     connection.commit()
     connection.close()
     print("Object saved successfully!")
 
+
+
 def load_objects(user_id):
     connection = sqlite3.connect('data.db')
     cursor = connection.cursor()
-    
+    cursor.execute("SELECT ObjectID, ObjectName FROM Objects WHERE UserID = ?", (user_id,))
+    result = [[obj_id, obj_name ] for obj_id,obj_name in cursor.fetchall()]
+    connection.close()
+    return result
+
+def load_object(user_id, obj_id):
+    connection = sqlite3.connect('data.db')
+    cursor = connection.cursor()
+    cursor.execute("SELECT ObjectData FROM Objects WHERE UserID = ? AND ObjectID = ?", (user_id, obj_id))
+    result = cursor.fetchone()
+    connection.close()
+    return json.loads(result[0])
+
