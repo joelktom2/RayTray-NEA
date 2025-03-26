@@ -33,7 +33,7 @@ myobj = Sphere(Vector(0, 0, 5), 1.5, colour(0,0,1),[0.6,0.2,0.2,0.4])   #low ref
 
 
 mycam = camera(Vector(0, 0, -1))
-s1 = Sphere(Vector(0,0,2), 0.5, None,[0.5,0.5,0.0,0.0],GradientTexture())
+s1 = Sphere(Vector(0,0,2), 0.5, None,[0.5,0.5,0.0,0.0],NoiseTexture(colour1=colour(1, 0, 0), colour2=colour(0, 0, 0), scale=5))
 
 ls = Sphere(Vector(0,10000.5,1), 10000, None,[0.5,0.5,0.0,0.0],GradientTexture())
 c1 = Cone(Vector(0,-5.5,5),Vector(0,1,0),math.pi/6,5,colour(1,0,0),[0.5,0.5,0.0,0.0])
@@ -41,7 +41,7 @@ e1 = Ellipsoid(Vector(0,0,5),Vector(3,50,3),colour(0,1,0),[0.5,0.5,0.0,0.0],chec
 cy1 = Cylinder(Vector(0,-2,5),"x",2,1,colour(1,0,0),[0.5,0.5,0.0,0.0],GradientTexture())
 f1 = Floor(colour(0,0,0),[0.5,0.5,0.0,0.0],checker_texture())
 objects = []
-objects.append(f1)
+objects.append(s1)
 
 
 
