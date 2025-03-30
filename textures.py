@@ -22,7 +22,7 @@ class checker_texture:
         
     
         
-class GradientTexture:
+class gradient_texture:
     def __init__(self, color_start=colour(1, 0, 0), color_end=colour(0, 0, 1)):
         self.color_start = color_start
         self.color_end = color_end
@@ -36,12 +36,12 @@ class GradientTexture:
             (1 - t) * self.color_start.z + t * self.color_end.z,
         )
     
-class NoiseTexture:
-    def __init__(self,colour1=colour(1, 1, 1), colour2=colour(0, 0, 0), scale=1):
+class noise_texture:
+    def __init__(self,colour1=colour(1, 1, 1), colour2=colour(0, 0, 0),):
         self.noise_generator = ValueNoise3D(grid_size=32)
         self.colour1 = colour1
         self.colour2 = colour2
-        self.scale = scale
+        self.scale = 5
 
     def get_colour(self, point):
         x = point.x * self.scale

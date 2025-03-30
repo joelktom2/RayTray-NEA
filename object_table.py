@@ -22,7 +22,7 @@ def init():
 
 
 def get_object_data(obj):
-    
+    # Extract relevant attributes from the object
     center = getattr(obj, "center", None)
     if center != None:
         center = center.values()
@@ -80,7 +80,7 @@ def save_object(user_id, obj, obj_name):
     """, (user_id, obj.__class__.__name__,obj_name,object_json))
     connection.commit()
     connection.close()
-    print("Object saved successfully!")
+
 
 
 
@@ -98,5 +98,6 @@ def load_object(user_id, obj_id):
     cursor.execute("SELECT ObjectData FROM Objects WHERE UserID = ? AND ObjectID = ?", (user_id, obj_id))
     result = cursor.fetchone()
     connection.close()
+    
     return json.loads(result[0])
 

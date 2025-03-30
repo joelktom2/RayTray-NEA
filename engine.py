@@ -144,12 +144,7 @@ class engine:
             depth += 1
             reflected_ray = self.reflect(ray,object_hit.get_normal(intersect_point),intersect_point)
             fcolour += self.ray_trace(reflected_ray,scene,depth+1) * (object_hit.material.reflectivity)
-        
-        #print(fcolour)
-        
-        # if object_hit:
-        #     print(fcolour)
-        
+                
         return fcolour
         
         

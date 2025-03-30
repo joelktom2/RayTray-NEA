@@ -107,10 +107,12 @@ def main(page):
         
         
         #input sanitation
-        if not username_sanitate(usern) or not password_sanitate(pwd):
-            error_message.value = "Invalid username or password"
+        if not username_sanitate(usern):
+            error_message.value = "Invalid username"
             error_message.visible = True
             page.update()
+            return
+        if not password_sanitate(pwd):
             return
         
         page.update()
@@ -420,11 +422,18 @@ def main(page):
         
         def build_custom_object(obj_data):
             
-
             if obj_data["texture"] == "checker_texture":
                 texture_colour1 = get_colour(obj_data["texture"]["colour1"])
                 texture_colour2 = get_colour(obj_data["texture"]["colour2"])
                 texture = checker_texture(texture_colour1,texture_colour2)
+            elif obj_data["texture"] == "gradient_texture":
+                texture_colour1 = get_colour(obj_data["texture"]["colour1"])
+                texture_colour2 = get_colour(obj_data["texture"]["colour2"])
+                texture = gradient_texture(texture_colour1,texture_colour2)
+            elif obj_data["texture"] == "noise_texture":
+                texture_colour1 = get_colour(obj_data["texture"]["colour1"])
+                texture_colour2 = get_colour(obj_data["texture"]["colour2"])
+                texture = noise_texture(texture_colour1,texture_colour2)
             else:
                 texture = None
             obj_material = [float(obj_data["material"][0]),float(obj_data["material"][1]),float(obj_data["material"][2]),float(obj_data["material"][3])] 
@@ -490,12 +499,26 @@ def main(page):
                     obj_error_message.visible = False
                     
                     if texture_type.value == "Checkerboard":
-                        if checker_colour1 == None or checker_colour2 == None:
+                        if texture_colour1 == None or texture_colour2 == None:
                             obj_error_message.value = "Please select both colours for the checkerboard"
                             obj_error_message.visible = True
                             page.update()
                             return
-                        object_texture = checker_texture(colour.hex_to_rgb(checker_colour1),colour.hex_to_rgb(checker_colour2))
+                        object_texture = checker_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
+                    elif texture_type.value == "Gradient":
+                        if texture_colour1 == None or texture_colour2 == None:
+                            obj_error_message.value = "Please select both colours for the gradient"
+                            obj_error_message.visible = True
+                            page.update()
+                            return
+                        object_texture = gradient_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
+                    elif texture_type.value == "Noise":
+                        if texture_colour1 == None or texture_colour2 == None:
+                            obj_error_message.value = "Please select both colours for the noise"
+                            obj_error_message.visible = True
+                            page.update()
+                            return
+                        object_texture = noise_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
                     else:
                         object_texture = None
                     
@@ -619,17 +642,17 @@ def main(page):
             
             page.update()
 
-        global checker_colour1
-        checker_colour1 = None
-        global checker_colour2
-        checker_colour2 = None
+        global texture_colour1
+        texture_colour1 = None
+        global texture_colour2
+        texture_colour2 = None
         
-        def get_checker_colour1(colour):
-            global checker_colour1
-            checker_colour1 = colour
-        def get_checker_colour2(colour):
-            global checker_colour2
-            checker_colour2 = colour
+        def get_texture_colour1(colour):
+            global texture_colour1
+            texture_colour1 = colour
+        def get_texture_colour2(colour):
+            global texture_colour2
+            texture_colour2 = colour
 
         
         
@@ -638,18 +661,21 @@ def main(page):
             
             
             
-            if texture == "Checkerboard":
+            if texture == "Checkerboard" or texture == "Gradient" or texture == "Noise":
                 
-                if checker_board_colour_buttons.visible:
+                
+                
+                if double_colour_texture_buttons.visible:
                     colour_button.visible = True
                     texture_type.value = None
-                    checker_board_colour_buttons.visible = False
+                    double_colour_texture_buttons.visible = False
                 
                 else:
                     colour_button.visible = False
-                    checker_board_colour_buttons.visible = True
+                    double_colour_texture_buttons.visible = True
+   
                 
-                page.update()
+            page.update()
                 
                 
 
@@ -1159,7 +1185,9 @@ def main(page):
         
         texture_type = ft.Dropdown(
             label= "Texture Type",
-            options=[(ft.dropdown.Option("Checkerboard",on_click= lambda e: add_texture("Checkerboard") ) ) , 
+            options=[(ft.dropdown.Option("Checkerboard",on_click= lambda e: add_texture("Checkerboard") ) ) ,
+                     (ft.dropdown.Option("Gradient",on_click= lambda e: add_texture("Gradient") ) ) , 
+                     (ft.dropdown.Option("Noise",on_click= lambda e: add_texture("Noise") ) ) ,  
                     
                      
                     ],
@@ -1253,18 +1281,18 @@ def main(page):
         
         
 
-        checker_board_colour_buttons = ft.Row(
+        double_colour_texture_buttons = ft.Row(
             [
             ft.Text(f"Colour 1"),
-            pick_color(get_checker_colour1),
+            pick_color(get_texture_colour1),
             
             ft.Text(f"Colour 2"),
-            pick_color(get_checker_colour2),
+            pick_color(get_texture_colour2),
                     
             ]
         )
         
-        checker_board_colour_buttons.visible = False
+        double_colour_texture_buttons.visible = False
         colour_button = pick_color(put_in_selected)
         
         Sign_out_Button= Fancy_Button(text="Sign Out", on_click=sign_out,)
@@ -1315,8 +1343,6 @@ def main(page):
 
         def download_file(file_path):
     
-            
-            
             def directory_picker_result(e: FilePickerResultEvent):
                 if e.path:
                     shutil.copy(file_path, e.path)
@@ -1325,8 +1351,7 @@ def main(page):
                     print("No directory selected")
                 
                 page.update()
-            
-            
+                        
             file_picker = FilePicker(on_result=directory_picker_result)
             page.add(file_picker)
             file_picker.get_directory_path(dialog_title="Select Directory")
@@ -1337,8 +1362,6 @@ def main(page):
             page.update()
 
        
-
-        
 
 
         def copy_image_to_clipboard(image_path):
@@ -1435,7 +1458,7 @@ def main(page):
                 stopper,
                 material_tile,
                 material_type,
-                ft.Column([texture_type,checker_board_colour_buttons]),
+                ft.Column([texture_type,double_colour_texture_buttons]),
                 colour_button,
                 add_object_button,
             ],
