@@ -434,6 +434,10 @@ def main(page):
                 texture_colour1 = get_colour(obj_data["texture"]["colour1"])
                 texture_colour2 = get_colour(obj_data["texture"]["colour2"])
                 texture = noise_texture(texture_colour1,texture_colour2)
+            elif obj_data["texture"] == "wood_texture":
+                texture_colour1 = get_colour(obj_data["texture"]["colour1"])
+                texture_colour2 = get_colour(obj_data["texture"]["colour2"])
+                texture = wood_texture(texture_colour1,texture_colour2)
             else:
                 texture = None
             obj_material = [float(obj_data["material"][0]),float(obj_data["material"][1]),float(obj_data["material"][2]),float(obj_data["material"][3])] 
@@ -468,7 +472,13 @@ def main(page):
             
             return myobj1
 
-
+        def validate_input_for_double_colour():
+            if texture_colour1 == None or texture_colour2 == None:
+                obj_error_message.value = "Please select both colours for the texture"
+                obj_error_message.visible = True
+                page.update()
+                return False
+            return True
 
         def add_object(e):   #adds an object to the scene
             
@@ -499,26 +509,21 @@ def main(page):
                     obj_error_message.visible = False
                     
                     if texture_type.value == "Checkerboard":
-                        if texture_colour1 == None or texture_colour2 == None:
-                            obj_error_message.value = "Please select both colours for the checkerboard"
-                            obj_error_message.visible = True
-                            page.update()
+                        if validate_input_for_double_colour() == False:
                             return
                         object_texture = checker_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
                     elif texture_type.value == "Gradient":
-                        if texture_colour1 == None or texture_colour2 == None:
-                            obj_error_message.value = "Please select both colours for the gradient"
-                            obj_error_message.visible = True
-                            page.update()
+                        if validate_input_for_double_colour() == False:
                             return
                         object_texture = gradient_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
                     elif texture_type.value == "Noise":
-                        if texture_colour1 == None or texture_colour2 == None:
-                            obj_error_message.value = "Please select both colours for the noise"
-                            obj_error_message.visible = True
-                            page.update()
+                        if validate_input_for_double_colour() == False:
                             return
                         object_texture = noise_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
+                    elif texture_type.value == "Wood":
+                        if validate_input_for_double_colour() == False:
+                            return
+                        object_texture = wood_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
                     else:
                         object_texture = None
                     
@@ -658,22 +663,19 @@ def main(page):
         
         def add_texture(texture):
             
-            
-            
-            
-            if texture == "Checkerboard" or texture == "Gradient" or texture == "Noise":
+            if texture == "None":
+                texture_type.value = None
+                double_colour_texture_buttons.visible = False
+                colour_button.visible = True
                 
+            elif texture == "Checkerboard" or texture == "Gradient" or texture == "Noise" or texture == "Wood":
+                colour_button.visible = False
+                double_colour_texture_buttons.visible = True
                 
-                
-                if double_colour_texture_buttons.visible:
-                    colour_button.visible = True
-                    texture_type.value = None
-                    double_colour_texture_buttons.visible = False
-                
-                else:
-                    colour_button.visible = False
-                    double_colour_texture_buttons.visible = True
-   
+            else:
+                colour_button.visible = True
+                double_colour_texture_buttons.visible = False
+
                 
             page.update()
                 
@@ -1187,7 +1189,10 @@ def main(page):
             label= "Texture Type",
             options=[(ft.dropdown.Option("Checkerboard",on_click= lambda e: add_texture("Checkerboard") ) ) ,
                      (ft.dropdown.Option("Gradient",on_click= lambda e: add_texture("Gradient") ) ) , 
-                     (ft.dropdown.Option("Noise",on_click= lambda e: add_texture("Noise") ) ) ,  
+                     (ft.dropdown.Option("Noise",on_click= lambda e: add_texture("Noise") ) ) ,
+                     (ft.dropdown.Option("Wood",on_click= lambda e: add_texture("Wood") ) ) ,
+                     (ft.dropdown.Option("None",on_click= lambda e: add_texture("None") ) ) ,
+
                     
                      
                     ],

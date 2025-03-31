@@ -2,7 +2,6 @@ from image import colour
 import math
 import random
 
-
 class checker_texture:
     def __init__(self, colour1=colour(1,0,0), colour2=colour(0,0,1), scale=1):
         self.colour1 = colour1
@@ -19,9 +18,7 @@ class checker_texture:
             return self.colour1
         else:
             return self.colour2
-        
-    
-        
+            
 class gradient_texture:
     def __init__(self, color_start=colour(1, 0, 0), color_end=colour(0, 0, 1)):
         self.color_start = color_start
@@ -60,10 +57,6 @@ class noise_texture:
             (1 - t) * self.colour1.y + t * self.colour2.y,
             (1 - t) * self.colour1.z + t * self.colour2.z
         )
-
-
-import random
-import math
 
 # Fade function for smooth interpolation
 def fade(t):
@@ -130,3 +123,70 @@ class ValueNoise3D:
         nxy1 = lerp(nx01, nx11, v)
 
         return lerp(nxy0, nxy1, w)
+
+# class wood_texture(self, point):
+#     self.noise_generator = ValueNoise3D(grid_size=32)
+#     noise_value = self.noise_generator.noise(point.x * self.scale, point.y * self.scale, point.z * self.scale)
+#     grain = 0.5 * (1 + math.sin((point.x + point.y + point.z) * self.scale + noise_value * 10))
+#     return colour(
+#         (1 - grain) * self.colour1.x + grain * self.colour2.x,
+#         (1 - grain) * self.colour1.y + grain * self.colour2.y,
+#         (1 - grain) * self.colour1.z + grain * self.colour2.z
+#     )
+
+class wood_texture():
+    def __init__(self, colour1=colour(0.8, 0.6, 0.3), colour2=colour(0.6, 0.4, 0.2)):
+        self.noise_generator = ValueNoise3D(grid_size=32)
+        self.colour1 = colour1
+        self.colour2 = colour2
+        self.scale = 10
+        
+    def get_colour(self, point):
+        
+        noise_value = self.noise_generator.noise(point.x * self.scale, point.y * self.scale, point.z * self.scale)
+        grain = 0.5 * (1 + math.sin((point.x + point.y + point.z) * self.scale + noise_value * 10))
+
+        return colour(
+            (1 - grain) * self.colour1.x + grain * self.colour2.x,
+            (1 - grain) * self.colour1.y + grain * self.colour2.y,
+            (1 - grain) * self.colour1.z + grain * self.colour2.z
+        )
+    
+class marble_texture():
+    def __init__(self,colour1=colour(0.95, 0.95, 0.95),colour2=colour(0.6, 0.6, 0.6)):
+        self.noise_generator = ValueNoise3D(grid_size=32)
+        self.colour1 = colour1
+        self.colour2 = colour2
+        self.scale = 1
+        
+    def get_colour(self, point):
+        
+        turbulence = 0.0
+        scale = self.scale
+        for i in range(5):
+            turbulence += abs(self.noise_generator.noise(point.x * scale, point.y * scale, point.z * scale)) / scale
+            scale *= 2
+        t = 0.5 * (1 + math.sin(point.x * self.scale + turbulence * 5))
+        return colour(
+            (1 - t) * self.colour1.x + t * self.colour2.x,
+            (1 - t) * self.colour1.y + t * self.colour2.y,
+            (1 - t) * self.colour1.z + t * self.colour2.z
+        )
+    
+class cloud_texture():
+    def __init__(self, colour1=colour(1, 1, 1), colour2=colour(0.8, 0.8, 0.8)):
+        self.noise_generator = ValueNoise3D(grid_size=32)
+        self.colour1 = colour1
+        self.colour2 = colour2
+        self.scale = 5
+        
+    def get_colour(self, point):
+        
+        noise_value = self.noise_generator.noise(point.x * self.scale, point.y * self.scale, point.z * self.scale)
+        t = (noise_value + 1) / 2
+        t = max(0, min(1, t))
+        return colour(
+            (1 - t) * self.colour1.x + t * self.colour2.x,
+            (1 - t) * self.colour1.y + t * self.colour2.y,
+            (1 - t) * self.colour1.z + t * self.colour2.z
+        )
