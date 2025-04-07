@@ -124,15 +124,6 @@ class ValueNoise3D:
 
         return lerp(nxy0, nxy1, w)
 
-# class wood_texture(self, point):
-#     self.noise_generator = ValueNoise3D(grid_size=32)
-#     noise_value = self.noise_generator.noise(point.x * self.scale, point.y * self.scale, point.z * self.scale)
-#     grain = 0.5 * (1 + math.sin((point.x + point.y + point.z) * self.scale + noise_value * 10))
-#     return colour(
-#         (1 - grain) * self.colour1.x + grain * self.colour2.x,
-#         (1 - grain) * self.colour1.y + grain * self.colour2.y,
-#         (1 - grain) * self.colour1.z + grain * self.colour2.z
-#     )
 
 class wood_texture():
     def __init__(self, colour1=colour(0.8, 0.6, 0.3), colour2=colour(0.6, 0.4, 0.2)):
@@ -173,7 +164,7 @@ class marble_texture():
             (1 - t) * self.colour1.z + t * self.colour2.z
         )
     
-class cloud_texture():
+class smoke_texture():
     def __init__(self, colour1=colour(1, 1, 1), colour2=colour(0.8, 0.8, 0.8)):
         self.noise_generator = ValueNoise3D(grid_size=32)
         self.colour1 = colour1

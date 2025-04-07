@@ -116,12 +116,16 @@ def main(page):
             return
         
         page.update()
-        create_user(usern,pwd)
+        
+        if not (create_user(usern,pwd)):
+            error_message.value = "Username already exists"
+            error_message.visible = True
+            page.update()
+            return
         
         path = f'C:/Users/jobyk/python/RayTray - NEA/User_Data/{get_user_id(usern)}' 
         if not os.path.exists(path):
             os.makedirs(path)
-        
         
         
         global User_Status
@@ -473,8 +477,13 @@ def main(page):
             return myobj1
 
         def validate_input_for_double_colour():
-            if texture_colour1 == None or texture_colour2 == None:
-                obj_error_message.value = "Please select both colours for the texture"
+            if texture_colour1 == None and texture_colour2 != None:
+                obj_error_message.value = "Please select BOTH colours for the texture"
+                obj_error_message.visible = True
+                page.update()
+                return False
+            elif texture_colour1 != None and texture_colour2 == None:
+                obj_error_message.value = "Please select BOTH colours for the texture"
                 obj_error_message.visible = True
                 page.update()
                 return False
@@ -511,19 +520,51 @@ def main(page):
                     if texture_type.value == "Checkerboard":
                         if validate_input_for_double_colour() == False:
                             return
-                        object_texture = checker_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
+                        if texture_colour1 != None and texture_colour2 != None:
+                            object_texture = checker_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
+                        else:
+                            object_texture = checker_texture()
                     elif texture_type.value == "Gradient":
                         if validate_input_for_double_colour() == False:
                             return
-                        object_texture = gradient_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
+                        
+                        if texture_colour1 != None and texture_colour2 != None:
+                            object_texture = gradient_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
+                        else:
+                            object_texture = gradient_texture()
                     elif texture_type.value == "Noise":
                         if validate_input_for_double_colour() == False:
                             return
-                        object_texture = noise_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
+                        if texture_colour1 != None and texture_colour2 != None:
+                            object_texture = noise_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
+                        else:
+                            object_texture = noise_texture()
+                    
                     elif texture_type.value == "Wood":
                         if validate_input_for_double_colour() == False:
                             return
-                        object_texture = wood_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
+                        if texture_colour1 != None and texture_colour2 != None:
+                            object_texture = wood_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
+                        else:
+                            object_texture = wood_texture()
+                    
+                    elif texture_type.value == "Marble":
+                        if validate_input_for_double_colour() == False:
+                            return
+                        if texture_colour1 != None and texture_colour2 != None:
+                            object_texture = marble_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
+                        else:
+                            object_texture = marble_texture()
+
+                    elif texture_type.value == "Smoke":
+                        print(texture_colour1)
+                        print(texture_colour2)
+                        if validate_input_for_double_colour() == False:
+                            return
+                        if texture_colour1 != None and texture_colour2 != None:
+                            object_texture = smoke_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
+                        else:
+                            object_texture = smoke_texture()
                     else:
                         object_texture = None
                     
@@ -541,9 +582,9 @@ def main(page):
                         myobj1 = Cone(tip,axis,angle,height,colour.hex_to_rgb(selected_color),obj_material,object_texture)
                     elif object_type.value == "Ellipsoid":
                         position = string_coords_to_Vector(object_position.value)
-                        a = float(object_abc.controls[0].value)
-                        b = float(object_abc.controls[1].value)
-                        c = float(object_abc.controls[2].value)
+                        a = float(object_abc.controls[0].text_field.value)
+                        b = float(object_abc.controls[1].text_field.value)
+                        c = float(object_abc.controls[2].text_field.value)
                         abc = Vector(a,b,c)
                         myobj1 = Ellipsoid(position, abc,colour.hex_to_rgb(selected_color),obj_material,object_texture)
                     elif object_type.value == "Cylinder":
@@ -668,7 +709,7 @@ def main(page):
                 double_colour_texture_buttons.visible = False
                 colour_button.visible = True
                 
-            elif texture == "Checkerboard" or texture == "Gradient" or texture == "Noise" or texture == "Wood":
+            elif texture == "Checkerboard" or texture == "Gradient" or texture == "Noise" or texture == "Wood" or texture == "Marble" or texture == "Smoke":
                 colour_button.visible = False
                 double_colour_texture_buttons.visible = True
                 
@@ -1191,7 +1232,10 @@ def main(page):
                      (ft.dropdown.Option("Gradient",on_click= lambda e: add_texture("Gradient") ) ) , 
                      (ft.dropdown.Option("Noise",on_click= lambda e: add_texture("Noise") ) ) ,
                      (ft.dropdown.Option("Wood",on_click= lambda e: add_texture("Wood") ) ) ,
+                     (ft.dropdown.Option("Marble",on_click= lambda e: add_texture("Marble") ) ),
+                     (ft.dropdown.Option("Smoke",on_click= lambda e: add_texture("Smoke") ) ),
                      (ft.dropdown.Option("None",on_click= lambda e: add_texture("None") ) ) ,
+
 
                     
                      
@@ -1510,7 +1554,7 @@ def main(page):
                     ft.Row([R_Button(text="Render", on_click=render)], alignment=ft.MainAxisAlignment.CENTER),
                     scene_error_message,
                     ft.Row([Sign_out_Button,R_Button(text="Test Render", on_click=test_render),My_Renders_Button], alignment=ft.MainAxisAlignment.CENTER),
-                    ft.Row([R_Button(text="Testy", on_click=testy)], alignment=ft.MainAxisAlignment.CENTER),
+                    ft.Row([R_Button(text="Auto Fill", on_click=testy)], alignment=ft.MainAxisAlignment.CENTER),
                     
                 
                 ],
@@ -1570,6 +1614,15 @@ def main(page):
                     ),
                     error_message,
                     guest_button,
+                    
+                    ft.Text(
+                    "Password must contain at least :\n- 8 characters\n- One capital letter\n- One special character (!, @, $, %, ^, &, *, +, #)\n- One number",
+                    size=12,
+                    color=ft.colors.GREY,
+                    italic=True,
+                    weight=ft.FontWeight.BOLD,
+                    text_align=ft.TextAlign.CENTER,
+                    ),
 
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,

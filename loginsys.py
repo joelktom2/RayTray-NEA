@@ -26,13 +26,24 @@ def verify_password(plain_password, hashed_password):
 def create_user(username, password):
     connection = sqlite3.connect('data.db')
     cursor = connection.cursor()
-    try:    
+    
+    # Check if username already exists
+    cursor.execute("SELECT * FROM Users WHERE Username = ?", (username,))
+    existing_user = cursor.fetchone()
+
+    if existing_user:
+        connection.close()
+        return False  # Username already exists
+    else:
+        # Insert new user into the database
         cursor.execute("INSERT INTO Users (Username, PasswordHash) VALUES (?, ?)", (username, hash_password(password)))
         connection.commit()
-    except sqlite3.IntegrityError:
-        print("Username already exists")
+        connection.close()
+        return True  # User created successfully
+
     
-    connection.close()
+    
+    
                 
 def login_user(username, password):
     connection = sqlite3.connect('data.db')
@@ -71,4 +82,3 @@ def get_user_id(username):
         return None  # Return None if no matching user is found
     
 
-print(get_user_id("joel"))
