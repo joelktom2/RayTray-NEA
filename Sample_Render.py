@@ -1,6 +1,6 @@
 from Maths import Vector
 from scene import Scene,camera
-from objects import Sphere , Cone,Ellipsoid,Cylinder,Floor
+from objects import Sphere , Cone,Ellipsoid,Cylinder,Floor,Cube
 from image import colour
 from engine import engine
 from light import light
@@ -40,8 +40,12 @@ c1 = Cone(Vector(0,-5.5,5),Vector(0,1,0),math.pi/6,5,colour(1,0,0),[0.5,0.5,0.0,
 e1 = Ellipsoid(Vector(0,0,5),Vector(3,50,3),colour(0,1,0),[0.5,0.5,0.0,0.0],checker_texture())
 cy1 = Cylinder(Vector(0,-2,5),"x",2,1,colour(1,0,0),[0.5,0.5,0.0,0.0],gradient_texture())
 f1 = Floor(colour(0,0,0),[0.5,0.5,0.0,0.0],smoke_texture())
+#cube1 = Cube(Vector(-2,0,3),2,colour(1,0,0),[0.5,0.5,0.0,0.0],checker_texture())
+
+rcube = Cube(Vector(0,0,3),2,Vector(0, math.radians(30), 0),colour(1,0,0),[0.5,0.5,0.0,0.0],checker_texture())
+
 objects = []
-objects.append(f1)
+objects.append(s1)
 
 
 

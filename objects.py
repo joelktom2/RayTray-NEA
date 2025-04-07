@@ -1,7 +1,7 @@
 import math
 from material import material
 from image import colour
-from Maths import Vector
+from Maths import Vector,Matrix
 
 # class Plane():
     
@@ -304,3 +304,79 @@ class Ellipsoid():
         else:
             return None
 
+
+
+class Cube:
+    def __init__(self, center, side_length, rotation=Vector(0, 0, 0), colour=colour(0, 0, 0), mat=[0.5, 0.5, 0.0, 0.0], texture=None):
+        self.center = center
+        self.side_length = side_length
+        self.colour = colour
+        self.material = material(colour, mat[0], mat[1], mat[2], mat[3], texture)
+
+        # Build rotation matrix
+        self.rotation = rotation
+        self.rotation_matrix = Matrix.get_combined_rotation_matrix(rotation)
+        self.inverse_rotation_matrix = self.rotation_matrix.inverse()
+
+        # Local space AABB (unrotated)
+        half = side_length / 2
+        self.local_min = Vector(-half, -half, -half)
+        self.local_max = Vector(half, half, half)
+
+    def get_normal(self, point):
+        # Transform point into local space
+        local_point = Matrix.rotate_vector(point - self.center, self.inverse_rotation_matrix)
+
+        # Determine face normal in local space
+        epsilon = 1e-5
+        if abs(local_point.x - self.local_max.x) < epsilon:
+            normal = Vector(1, 0, 0)
+        elif abs(local_point.x - self.local_min.x) < epsilon:
+            normal = Vector(-1, 0, 0)
+        elif abs(local_point.y - self.local_max.y) < epsilon:
+            normal = Vector(0, 1, 0)
+        elif abs(local_point.y - self.local_min.y) < epsilon:
+            normal = Vector(0, -1, 0)
+        elif abs(local_point.z - self.local_max.z) < epsilon:
+            normal = Vector(0, 0, 1)
+        elif abs(local_point.z - self.local_min.z) < epsilon:
+            normal = Vector(0, 0, -1)
+        else:
+            normal = Vector(0, 0, 0)  # fallback
+
+        # Rotate normal back to world space
+        return Matrix.rotate_vector(normal, self.rotation_matrix).norm()
+
+    def intersects(self, ray):
+        # Step 1: Transform ray into cube's local space
+        local_origin = Matrix.rotate_vector(ray.origin - self.center, self.inverse_rotation_matrix)
+        local_direction = Matrix.rotate_vector(ray.direction, self.inverse_rotation_matrix)
+
+        # Step 2: Perform standard AABB ray-box intersection in local space
+        t_min = -float('inf')
+        t_max = float('inf')
+        for axis in ['x', 'y', 'z']:
+            origin_val = getattr(local_origin, axis)
+            direction_val = getattr(local_direction, axis)
+            min_val = getattr(self.local_min, axis)
+            max_val = getattr(self.local_max, axis)
+
+            if abs(direction_val) < 1e-6:
+                if origin_val < min_val or origin_val > max_val:
+                    return None  # no intersection
+            else:
+                t1 = (min_val - origin_val) / direction_val
+                t2 = (max_val - origin_val) / direction_val
+                t1, t2 = min(t1, t2), max(t1, t2)
+                t_min = max(t_min, t1)
+                t_max = min(t_max, t2)
+                if t_max < t_min:
+                    return None
+
+        if t_min < 0:
+            return None  # intersection is behind the ray
+
+        # Step 3: Convert hit point back to world space
+        hit_local = local_origin + local_direction * t_min
+        hit_world = Matrix.rotate_vector(hit_local, self.rotation_matrix) + self.center
+        return hit_world

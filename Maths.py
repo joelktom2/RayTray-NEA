@@ -65,9 +65,13 @@ class Matrix():
     def __str__(self):
         return f"{self.elements}"
     
+
+    def zero(rows, cols):
+        return Matrix([[0 for _ in range(cols)] for _ in range(rows)])
+    
     def __add__(self,m2):
         if self.row == m2.row and self.column == m2.column:
-            m3 = Matrix([[0 for _ in range(self.column)] for _ in range(self.row)])
+            m3 = Matrix.zero(self.row, self.column)
             for x in range(self.row):
                 for y in range(self.column):
                     m3.elements[x][y] = self.elements[x][y] + m2.elements[x][y]
@@ -79,7 +83,7 @@ class Matrix():
     def __sub__(self,m2):
         
         if self.row == m2.row and self.column == m2.column:
-            m3 = Matrix([[0 for _ in range(self.column)] for _ in range(self.row)])
+            m3 = Matrix.zero(self.row, self.column)
             for x in range(self.row):
                 for y in range(self.column):
                     m3.elements[x][y] = self.elements[x][y] - m2.elements[x][y]
@@ -88,18 +92,26 @@ class Matrix():
         else:
             return None
     
-    def __mul__(self,m2):
-        m3 = Matrix([[0 for _ in range(self.column)] for _ in range(self.row)])
-        if self.column == m2.row:
-            for x in range(len(self.elements)):  
-                for j in range(m2.column):    
-                    total = 0
-                    for i in range(self.column):  
-                        total += self.elements[x][i] * m2.elements[i][j]
-                    print(total)
-                    print(f"x : {x} j: {j}")
-                    m3.elements[x][j] = total
-            return m3
+    
+    def __mul__(self, other):
+        # Matrix × Matrix
+        if isinstance(other, Matrix):
+            if self.column != other.row:
+                return None
+            result = [[0 for _ in range(other.column)] for _ in range(self.row)]
+            for i in range(self.row):
+                for j in range(other.column):
+                    for k in range(self.column):
+                        result[i][j] += self.elements[i][k] * other.elements[k][j]
+            return Matrix(result)
+
+        # Matrix × Vector
+        elif isinstance(other, Vector) and self.row == 3 and self.column == 3:
+            x = self.elements[0][0] * other.x + self.elements[0][1] * other.y + self.elements[0][2] * other.z
+            y = self.elements[1][0] * other.x + self.elements[1][1] * other.y + self.elements[1][2] * other.z
+            z = self.elements[2][0] * other.x + self.elements[2][1] * other.y + self.elements[2][2] * other.z
+            return Vector(x, y, z)
+
         else:
             return None
 
@@ -116,7 +128,7 @@ class Matrix():
         d = self.elements[1][1]
         det = (a*d)-(b*c)
         if det != 0:
-            m3 = Matrix([[0 for _ in range(self.column)] for _ in range(self.row)])
+            m3 = Matrix.zero(self.row, self.column)
             m3.elements[0][0] = d/det
             m3.elements[0][1] = -b/det
             m3.elements[1][0] = -c/det
@@ -137,7 +149,7 @@ class Matrix():
         i = self.elements[2][2]
         det = (a*(e*i-f*h))-(b*(d*i-f*g))+(c*(d*h-e*g))
         if det != 0:
-            m3 = Matrix([[0 for _ in range(self.column)] for _ in range(self.row)])
+            m3 = Matrix.zero(self.row, self.column)
             m3.elements[0][0] = (e*i-f*h)/det
             m3.elements[0][1] = (c*h-b*i)/det
             m3.elements[0][2] = (b*f-c*e)/det
@@ -151,22 +163,55 @@ class Matrix():
         else:
             return None
     
-    def inverse4x4(self):
-        pass
-    
     def inverse(self):
         if self.row == self.column:
             if self.row == 2:
                 m3 = self.inverse2x2()
             elif self.row == 3:
                 m3 = self.inverse3x3()
-            elif self.row == 4:
-                m3 = self.inverse4x4()
             else:
                 return None
             return m3
         else:
             return None        
+
+    
+
+    def get_combined_rotation_matrix(rotation_angle_vector):
+        rx = rotation_angle_vector.x
+        ry = rotation_angle_vector.y
+        rz = rotation_angle_vector.z
+
+        # Rotation around X-axis
+        Rx = Matrix([
+            [1, 0, 0],
+            [0, math.cos(rx), -math.sin(rx)],
+            [0, math.sin(rx), math.cos(rx)]
+        ])
+
+        # Rotation around Y-axis
+        Ry = Matrix([
+            [math.cos(ry), 0, math.sin(ry)],
+            [0, 1, 0],
+            [-math.sin(ry), 0, math.cos(ry)]
+        ])
+
+        # Rotation around Z-axis
+        Rz = Matrix([
+            [math.cos(rz), -math.sin(rz), 0],
+            [math.sin(rz), math.cos(rz), 0],
+            [0, 0, 1]
+        ])
+
+        # Combine: R = Rz * Ry * Rx
+        # Note: Matrix multiplication is NOT commutative, so order matters!
+        return Rz * Ry * Rx
+
+
+    def rotate_vector(vec, matrix):
+        vec_m = Matrix([[vec.x], [vec.y], [vec.z]])
+        result = matrix * vec_m
+        return Vector(result.elements[0][0], result.elements[1][0], result.elements[2][0])
 
 class Ray():
     def __init__(self, origin, direction):
@@ -183,6 +228,10 @@ class Ray():
 
 
 def refract(n1, n2, normal, incident):   #random 
+
+
+
     incident_angle = incident.angle(normal)
     refracted_angle = math.asin((n1*math.sin(incident_angle))/n2) #applies snell's law
     return refracted_angle 
+

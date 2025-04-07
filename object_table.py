@@ -43,6 +43,10 @@ def get_object_data(obj):
     if colour != None:
         colour = colour.values()
     
+    object_rotation = getattr(obj, 'rotation', None)
+    if object_rotation != None:
+        object_rotation = object_rotation.values()
+    
     if obj.material.texture != None:
         texture = obj.material.texture.__class__.__name__
     else:
@@ -59,6 +63,7 @@ def get_object_data(obj):
         "height": getattr(obj, 'height', None),
         "radius": getattr(obj, 'radius', None),
         "cylinder_radius": getattr(obj, 'cylinder_radius', None),
+        "object_rotation": object_rotation,
         "colour": colour,    
         "material": (obj.material).values(),
         "texture": texture,

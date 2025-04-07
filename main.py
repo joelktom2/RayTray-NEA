@@ -275,7 +275,7 @@ def main(page):
             if validcoord(light_pos.value):
                 light_error_message.visible = False
                 position_parts = light_pos.value.split(",")
-                x, y, z = map(int, position_parts)
+                x, y, z = map(float, position_parts)
                 mylight = light(Vector(x, y, z),colour(1,1,1))
                 lights.append(mylight)
 
@@ -310,7 +310,7 @@ def main(page):
                     return
                 cam_error_message.visible = False
                 cam_parts = cam_pos.value.split(",")
-                x, y, z = map(int, cam_parts)
+                x, y, z = map(float, cam_parts)
                 global scene_camera
                 scene_camera = camera(Vector(x, y, z))
                 added_cam.controls.append(
@@ -413,12 +413,16 @@ def main(page):
                 return False
             return True
         
-       
+        def validate_inputs_for_cube():
+            if validate_inputs_for_sphere() == False:
+                return False
+            return True
+
 
         
         def string_coords_to_Vector(value):
             position_parts = value.split(",")
-            x, y, z = map(int, position_parts)
+            x, y, z = map(float, position_parts)
             return Vector(x, y, z)
         
         def get_colour(list):
@@ -446,9 +450,9 @@ def main(page):
                 texture = None
             obj_material = [float(obj_data["material"][0]),float(obj_data["material"][1]),float(obj_data["material"][2]),float(obj_data["material"][3])] 
             obj_colour = get_colour(obj_data["colour"])
+            
             if obj_data["type"] == "Floor":
                 myobj1 = Floor(obj_colour,obj_material,texture)
-            
             elif obj_data["type"] == "Sphere":
                 position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
                 radius = float(obj_data["radius"])
@@ -473,6 +477,11 @@ def main(page):
                     myobj1 = Cylinder(position,"y",height,radius,obj_colour,obj_material,texture)
                 else:
                     myobj1 = Cylinder(position,"z",height,radius,obj_colour,obj_material,texture)
+            elif obj_data["type"] == "Cube":
+                position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
+                side_length = float(obj_data["radius"])
+                object_rotation = Vector(obj_data["rotation"][0],obj_data["rotation"][1],obj_data["rotation"][2])
+                myobj1 = Cube(position,side_length,object_rotation,obj_colour,obj_material,texture)
             
             return myobj1
 
@@ -505,7 +514,8 @@ def main(page):
                 pass
             elif object_type.value == "Cylinder" and validate_inputs_for_Cylinder() == False:
                 pass
-            
+            elif object_type.value == "Cube" and validate_inputs_for_cube() == False:
+                pass
             else:
                 if object_type.value.startswith("Custom"):
                     if ":" in object_type.value:
@@ -597,6 +607,18 @@ def main(page):
                             myobj1 = Cylinder(position,"y",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
                         else:
                             myobj1 = Cylinder(position,"z",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                    elif object_type.value == "Cube":
+                        position = string_coords_to_Vector(object_position.value)
+                        side_length = float(object_radius.value)
+                        if object_rotation.value == None or object_rotation.value == "":
+                            rotation = Vector(0,0,0)
+                        else:
+                            rotation = string_coords_to_Vector(object_rotation.value)
+                            rotation.x = float(math.radians(rotation.x))
+                            rotation.y = float(math.radians(rotation.y))
+                            rotation.z = float(math.radians(rotation.z))
+                        myobj1 = Cube(position,side_length,rotation,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+
                     else:
                         position = string_coords_to_Vector(object_position.value)
                         myobj1 = globals()[object_type.value](position, float(object_radius.value),colour.hex_to_rgb(selected_color),obj_material,object_texture)
@@ -1113,6 +1135,15 @@ def main(page):
             object_radius.label = "Cylinder Height"
             page.update()
 
+        def add_Cube_ui(e):
+            remove_ui()
+            object_position.visible = True
+            object_position.label = "Cube Center Position"
+            object_radius.visible = True
+            object_radius.label = "Cube Side Length"
+            object_rotation.visible = True
+            page.update()
+
         def remove_ui():
             for x in object_tile.controls:
                 if x._get_control_name() == "text":
@@ -1165,6 +1196,7 @@ def main(page):
                      ft.dropdown.Option("Cone",on_click= add_cone_ui),
                      ft.dropdown.Option("Ellipsoid",on_click= add_Ellipsoid_ui),
                      ft.dropdown.Option("Cylinder",on_click= add_Cylinder_ui),
+                    ft.dropdown.Option("Cube",on_click= add_Cube_ui),
                      ],
             width=150,
             border_color= ft.colors.GREEN_800,
@@ -1178,7 +1210,8 @@ def main(page):
         set = MyButton(text="Set", on_click=set_name)
         object_position = ft.TextField(label="Object Position", hint_text="e.g., (x, y, z)", width=150,border_color=ft.colors.GREEN_800)
         object_radius = ft.TextField(label="Object Radius", hint_text="e.g., 0.5", width=150,border_color=ft.colors.GREEN_800)
-
+        object_rotation = ft.TextField(label="Object Rotation", hint_text="e.g., (0, 45, 0) in degrees", width=150,border_color=ft.colors.GREEN_800)
+        
         cone_axis = ft.TextField(label="Cone Axis", hint_text="e.g., (x, y, z)", width=150,border_color=ft.colors.GREEN_800)
         cone_angle = ft.TextField(label="Cone Angle", hint_text="e.g., 45", width=150,border_color=ft.colors.GREEN_800)
         cone_axis.visible = False
@@ -1207,6 +1240,9 @@ def main(page):
         #cylinder height is object radius
         cylinder_radius.visible = False
         cylinder_allignment.visible = False
+
+
+
 
         Ambient_input = IntField("Ambient",0,1)
         Diffuse_input = IntField("Diffuse",0,1,0.5)
@@ -1504,6 +1540,7 @@ def main(page):
                 cone_angle,
                 object_radius,  #sometimes height
                 cylinder_radius,
+                object_rotation,
                 stopper,
                 material_tile,
                 material_type,
