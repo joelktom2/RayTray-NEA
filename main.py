@@ -312,10 +312,10 @@ def main(page):
                 cam_parts = cam_pos.value.split(",")
                 x, y, z = map(float, cam_parts)
                 global scene_camera
-                scene_camera = camera(Vector(x, y, z))
+                scene_camera = camera(Vector(x, y, z),int(fov_slider.value))
                 added_cam.controls.append(
                     ft.Row(
-                        [(ft.Text(f"Position: {cam_pos.value}")),Remove_ButtonLite(text="Remove", on_click=lambda e: remove_cam(e, scene_camera))] , alignment=ft.MainAxisAlignment.CENTER
+                        [(ft.Text(f"Position: {cam_pos.value} FOV: {fov_slider.value}")),Remove_ButtonLite(text="Remove", on_click=lambda e: remove_cam(e, scene_camera))] , alignment=ft.MainAxisAlignment.CENTER
                         
                     ),
                 )
@@ -415,6 +415,11 @@ def main(page):
         
         def validate_inputs_for_cube():
             if validate_inputs_for_sphere() == False:
+                return False
+            if validcoord(object_rotation.value) == False:
+                obj_error_message.value = "Please enter a valid Rotation Vector"
+                obj_error_message.visible = True
+                page.update()
                 return False
             return True
 
@@ -1181,7 +1186,14 @@ def main(page):
 
         render_name = ft.TextField(label="Render Name",hint_text="e.g., My_Render", width=600,border_color=ft.colors.GREEN_800)
         light_pos = ft.TextField(label="Light Source Postion",hint_text="e.g. x, y, z", width=600,border_color=ft.colors.GREEN_800)
-        cam_pos = ft.TextField(label= "Camera Postion",hint_text="e.g. x, y, z", width=600,border_color=ft.colors.GREEN_800)
+        cam_pos = ft.TextField(label= "Camera Postion",hint_text="e.g. x, y, z", width=300,border_color=ft.colors.GREEN_800)
+        fov_slider = ft.Slider(min=20,value = 90, max=150, divisions=130,label="FOV: {value}",width=400)
+        
+        fov_tile = ft.Column(
+            [ft.Text("Camera FOV"),fov_slider],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=1,
+        )
         width_input = ft.TextField(label = "Width",hint_text="e.g., 300", width=200, on_change=update_dimensions,border_color=ft.colors.GREEN_800)
         height_input = ft.TextField(label = "height",hint_text="e.g., 200", width=200, on_change=update_dimensions,border_color=ft.colors.GREEN_800)
 
@@ -1293,6 +1305,8 @@ def main(page):
         add_cam_button = MyButton(text="Add Camera", on_click=add_cam)
         add_object_button = MyButton(text="Add Object", on_click=add_object)
         add_light_button = MyButton(text="Add Light", on_click=add_light)
+        
+        
         
         
         
@@ -1576,11 +1590,13 @@ def main(page):
                     added_lights,
                     
                     ft.Row(
-                        [cam_pos,add_cam_button], alignment=ft.MainAxisAlignment.CENTER
+                        [cam_pos,fov_tile,add_cam_button], alignment=ft.MainAxisAlignment.CENTER
                     ),
                     cam_error_message,
                     ft.Text("Added Cameras:"),
                     added_cam,
+                    
+                    
                     ft.Row([width_input, height_input], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Row([current_width, current_height], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Text("Objects", size=16, weight=ft.FontWeight.BOLD),

@@ -1,6 +1,8 @@
 from image import colour
 from image import Image
 from Maths import Ray,Vector
+import math
+
 
 class engine:
     
@@ -9,12 +11,17 @@ class engine:
     
         width = scene.width
         height = scene.height        
-        
-        ar = width / height     
-        y_max = 1 /  ar
+        ar = width / height
+
+        fov = math.radians(scene.camera.fov)  #fov in radians
+        scale = math.tan(fov / 2)
+
+
+        y_max = scale
         y_min = -y_max
-        x_max = 1.0
+        x_max = scale * ar
         x_min = -x_max
+        
         xstep = (x_max - x_min) / (width - 1)
         ystep = (y_max - y_min) / (height - 1)
 

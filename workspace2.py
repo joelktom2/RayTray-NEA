@@ -1,8 +1,14 @@
-from Maths import Vector
+import flet as ft
 
-def string_coords_to_Vector(value):
-    position_parts = value.split(",")
-    x, y, z = map(float, position_parts)
-    return Vector(x, y, z)
+def main(page):
 
-print(string_coords_to_Vector("1.4,2,3"))  # Output: Vector(1, 2, 3)
+    def slider_changed(e):
+        t.value = f"Slider changed to {e.control.value}"
+        page.update()
+
+    t = ft.Text()
+    page.add(
+        ft.Text("Slider with 'on_change' event:"),
+        ft.Slider(min=20,value = 90, max=150, divisions=130,round = 1, label="{value}",width=500),
+    )
+ft.app(main)
