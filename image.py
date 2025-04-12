@@ -14,6 +14,9 @@ class colour(Vector):
         b = int(int(hex[4:6], 16)/255)
         return colour(r, g, b)
     
+    def rgb_to_hex(self):         # converts rgb colour to hex colour
+        return '#{:02x}{:02x}{:02x}'.format(int(self.x*255), int(self.y*255), int(self.z*255))
+    
     
 class Image:      
     def __init__(self, width, height):

@@ -24,6 +24,7 @@ import shutil
 import win32clipboard
 import io
 from datetime import datetime
+import copy
 
 
 def main(page):
@@ -338,7 +339,7 @@ def main(page):
                 return False
         
             elif validradius(object_radius.value) == False:
-                obj_error_message.value = "Please enter a valid radius"
+                obj_error_message.value = "Please enter a valid size"
                 obj_error_message.visible = True
                 page.update()
                 return False
@@ -363,6 +364,11 @@ def main(page):
                 return False
             elif validcoord(cone_axis.value) == False:
                 obj_error_message.value = "Please enter a valid axis"
+                obj_error_message.visible = True
+                page.update()
+                return False
+            elif cone_angle.value == None or cone_angle.value == "":
+                obj_error_message.value = "Please enter a valid angle"
                 obj_error_message.visible = True
                 page.update()
                 return False
@@ -396,11 +402,12 @@ def main(page):
         def validate_inputs_for_Cylinder():
             if validate_inputs_for_sphere() == False:
                 return False
-            elif cylinder_radius.visible == False:
-                obj_error_message.value = "Please enter a radius"
+            elif cylinder_radius.visible == False or validradius(cylinder_radius.value) == False:
+                obj_error_message.value = "Please enter a valid cylinder radius"
                 obj_error_message.visible = True
                 page.update()
                 return False
+            
             elif cylinder_allignment.value == None:
                 obj_error_message.value = "Please select an allignment"
                 obj_error_message.visible = True
@@ -416,11 +423,13 @@ def main(page):
         def validate_inputs_for_cube():
             if validate_inputs_for_sphere() == False:
                 return False
-            if validcoord(object_rotation.value) == False:
-                obj_error_message.value = "Please enter a valid Rotation Vector"
-                obj_error_message.visible = True
-                page.update()
-                return False
+            
+            if object_rotation.value:
+                if validcoord(object_rotation.value) == False:
+                    obj_error_message.value = "Please enter a valid Rotation Vector"
+                    obj_error_message.visible = True
+                    page.update()
+                    return False
             return True
 
 
@@ -634,7 +643,8 @@ def main(page):
                     ft.Row(
                         [(ft.Text(f"Type: {object_type.value} Position: {object_position.value}, Color: {selected_color}")),
                          Remove_ButtonLite(text="Remove", on_click=lambda e: remove_object(e, myobj1)),
-                         Remove_ButtonLite(text="Save Object", on_click=lambda e: save_custom_object(e, myobj1)) ,] , 
+                         Remove_ButtonLite(text="Save Object", on_click=lambda e: save_custom_object(e, myobj1)) ,
+                         ft.IconButton(icon=ft.icons.CONTENT_COPY_OUTLINED, icon_color=ft.colors.GREEN_800, on_click=lambda e: duplicate_object(e, myobj1))] , 
                          alignment=ft.MainAxisAlignment.CENTER
                     ),
                 
@@ -647,6 +657,23 @@ def main(page):
             scene_objects.pop(onum)
             added_objects.controls.pop(onum)
             page.update()
+
+        def duplicate_object(e, object):  #duplicates object in the scene
+            
+            temp_object = copy.deepcopy(object)   #instead of temp_object = object
+            
+            scene_objects.append(temp_object)
+            added_objects.controls.append(
+                    ft.Row(
+                        [(ft.Text(f"Type: {temp_object.__class__.__name__} , Color: {temp_object.colour.rgb_to_hex()}")),
+                         Remove_ButtonLite(text="Remove", on_click=lambda e: remove_object(e, temp_object)),
+                         Remove_ButtonLite(text="Save Object", on_click=lambda e: save_custom_object(e, temp_object)) ,
+                         ft.IconButton(icon=ft.icons.CONTENT_COPY_OUTLINED, icon_color=ft.colors.GREEN_800, on_click=lambda e: duplicate_object(e, temp_object))] , 
+                         alignment=ft.MainAxisAlignment.CENTER
+                    ),
+                )
+            page.update()
+                
         
         def save_custom_object(e,object):   #saves object to user
             if User_Status:
@@ -782,6 +809,11 @@ def main(page):
 
         def add_material_tile(e):
             material_tile.visible = True
+            page.update()
+
+        def remove_material_tile(e):
+            material_tile.visible = False
+            material_type.value = None
             page.update()
         
   
@@ -1228,14 +1260,14 @@ def main(page):
         cone_angle = ft.TextField(label="Cone Angle", hint_text="e.g., 45", width=150,border_color=ft.colors.GREEN_800)
         cone_axis.visible = False
         cone_angle.visible = False
-
+        object_rotation.visible = False
 
 
         object_abc = ft.Row(
             [
             IntField("X radius",0,100,1,1),
             IntField("Y radius",0,100,1,1),
-            IntField("X radius",0,100,1,1),]
+            IntField("Z radius",0,100,1,1),]
         )
         object_abc.visible = False
 
@@ -1268,7 +1300,8 @@ def main(page):
                     (ft.dropdown.Option("Matte",on_click= lambda e: add_material("Matte",False) ) ),
                     (ft.dropdown.Option("Glossy",on_click= lambda e: add_material("Glossy",False) ) ),
                      
-                    (ft.dropdown.Option("Custom", on_click= add_material_tile))],
+                    (ft.dropdown.Option("Custom", on_click= add_material_tile)),
+                    (ft.dropdown.Option("None", on_click= remove_material_tile))],
             width=150,
             border_color= ft.colors.GREEN_800,
 
