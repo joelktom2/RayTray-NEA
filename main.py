@@ -7,7 +7,7 @@ from scene import Scene,camera
 from light import light
 from loginsys import create_user,login_user,get_user_id
 from scenes_table import create_scene,get_scenes,get_scene_names,remove_scene
-from object_table import save_object,load_objects,load_object
+from object_table import save_object,load_objects,load_object,get_obj_id
 from material import material
 from textures import *
 
@@ -51,13 +51,13 @@ def main(page):
     theme_switch_button = ft.Switch(label="Dark Mode", on_change=switch_theme)     
     
     
-    def username_sanitate(value):
+    def username_sanitate(value:str) -> bool:
         if re.fullmatch(r'[A-Za-z0-9#_]+', value):
             return True
         return False   #checks if the username is valid
     
     
-    def password_sanitate(value):
+    def password_sanitate(value:str) -> bool: 
         if " " in value:
             error_message.value = "Password Cannot contain blank spaces"
             error_message.visible = True    
@@ -124,16 +124,16 @@ def main(page):
             page.update()
             return
         
-        path = f'C:/Users/jobyk/python/RayTray - NEA/User_Data/{get_user_id(usern)}' 
+        path = f'C:/Users/jobyk/python/RayTrayNEA/User_Data/{get_user_id(usern)}' 
         if not os.path.exists(path):
+            print("Made user folder")
             os.makedirs(path)
         
         
         global User_Status
         User_Status = True
 
-        global saved_objects
-        saved_objects = []
+     
 
         switch_to_main_ui(e)
     
@@ -168,20 +168,19 @@ def main(page):
         User_Status = True
         
 
-        global saved_objects
-        saved_objects = []
+        
         
         switch_to_main_ui(e)   #switches to the main UI when the user logs in successfully
     
     
     def switch_to_main_ui(e):
+        global page_tracker
         page_tracker = "main"
         
         error_message.visible = False
         
         global names
-        if names == 7:
-            pass
+
         
         
         # Clear the login page
@@ -243,17 +242,17 @@ def main(page):
                 self.weight = ft.FontWeight.BOLD
 
        
-        def validcoord(value):
+        def validcoord(value:str) -> bool:
             if re.fullmatch(r'-?\d+(\.\d+)?,-?\d+(\.\d+)?,-?\d+(\.\d+)?', value):
                 return True
             return False
         
-        def validradius(value):
+        def validradius(value:str) -> bool:
             if re.fullmatch(r'\d+(\.\d+)?', value):
                 return True
             return False
         
-        def validlength(value):
+        def validlength(value:str) -> bool:
             if re.fullmatch(r'\d+', value):
                 return True
             return False
@@ -434,15 +433,15 @@ def main(page):
 
 
         
-        def string_coords_to_Vector(value):
+        def string_coords_to_Vector(value:str) -> object:
             position_parts = value.split(",")
             x, y, z = map(float, position_parts)
             return Vector(x, y, z)
         
-        def get_colour(list):
+        def get_colour(list) -> object:
             return colour(list[0],list[1],list[2])
         
-        def build_custom_object(obj_data):
+        def build_custom_object(obj_data:dict) -> object:
             
             if obj_data["texture"] == "checker_texture":
                 texture_colour1 = get_colour(obj_data["texture"]["colour1"])
@@ -537,7 +536,7 @@ def main(page):
                         obj_id = int(object_type.value[7:hyphen])
                         myobj1 = build_custom_object(load_object(get_user_id(username.value),obj_id))
                     else:
-                        myobj1 = saved_objects[int(object_type.value[6:])]
+                        myobj1 = saved_objects[int(object_type.value[6:])-1]
                 else:
                     obj_error_message.visible = False
                     
@@ -682,13 +681,9 @@ def main(page):
                 page.open(custom_object_name_dlg)
                 page.update()
             else:
-                if len(saved_objects) > 0:
-                    obj_num = saved_objects.index(object)
-                    obj_name = "Custom" + str(obj_num)
-                else:
-                    obj_name = "Custom0"
-                object_type.options.append(ft.dropdown.Option(obj_name,on_click= add_custom_ui)) # saved locally via list
                 saved_objects.append(object)
+                obj_name = "Custom" + str(len(saved_objects))
+                object_type.options.append(ft.dropdown.Option(obj_name,on_click= add_custom_ui)) # saved locally via list
                 obj_error_message.value = "Object saved and can be accessed in object type"
                 obj_error_message.visible = True
                 page.update()
@@ -696,16 +691,18 @@ def main(page):
         def on_object_name_submit():
                 object = custom_object
                 object_name = custom_object_name.value
+                
+                object_name += datetime.today().strftime('%Y-%m-%d_%H_%M_%S')
+                print(object_name)
+                
                 save_object(get_user_id(username.value),object,object_name)
                 
-                if len(saved_objects) > 0:
-                    obj_num = saved_objects.index(object)
-                    obj_name = "Custom" + str(obj_num)
-                else:
-                    obj_name = "Custom0"
+                object_id = get_obj_id(get_user_id(username.value),object_name)
+
+                obj_name = "Custom:" + str(object_id) + "-" + custom_object_name.value
                 
                 object_type.options.append(ft.dropdown.Option(obj_name,on_click= add_custom_ui)) # saved locally via list
-                saved_objects.append(object)
+               
                 obj_error_message.value = "Object saved and can be accessed in object type"
                 obj_error_message.visible = True
                 page.update()
@@ -756,7 +753,7 @@ def main(page):
 
         
         
-        def add_texture(texture):
+        def add_texture(texture:str):
             
             if texture == "None":
                 texture_type.value = None
@@ -900,7 +897,6 @@ def main(page):
                 return False
             elif validlength(width_input.value) == False or validlength(height_input.value) == False:
                 cam_error_message.visible = False
-                
                 scene_error_message.value = "Please enter valid dimensions of the scene "
                 scene_error_message.visible = True
                 page.update()
@@ -1029,7 +1025,7 @@ def main(page):
             page.update()
 
         
-        def testy(e):
+        def testy(e):  #on click method for the Autofill Button used to fill example test values for scene
             render_name.value = "Testy"
             light_pos.value = "0,0,0"
             cam_pos.value = "0,0,-1"
@@ -1077,7 +1073,8 @@ def main(page):
             if User_Status:
                 custom_objects = load_objects(get_user_id(username.value))
                 for obj in custom_objects:
-                    object_type.options.append(ft.dropdown.Option(f"Custom:{obj[0]}-{obj[1]}",on_click= add_custom_ui))
+                    
+                    object_type.options.append(ft.dropdown.Option(f"Custom:{obj[0]}-{obj[1][:-19]}",on_click= add_custom_ui))
                 page.update()
                         
         img_carousel = ft.Row(expand=1, wrap=False, scroll="always")
@@ -1091,8 +1088,11 @@ def main(page):
         def my_renders(e):
             page.controls.clear()
             
-            scenes = get_scenes(get_user_id(username.value))
+            scenes = get_scenes(get_user_id(username.value))  
+            scenes = scenes[-1::-1]     #stack
+
             image_paths = [row[0] for row in scenes]
+            
             for image_path in image_paths:
                 
                 
@@ -1128,6 +1128,10 @@ def main(page):
         
         def add_custom_ui(e):
             remove_ui()
+            colour_button.visible = False
+            
+            material_type.visible = False
+            texture_type.visible = False
             page.update()
         
         def add_floor_ui(e):
@@ -1182,6 +1186,9 @@ def main(page):
             page.update()
 
         def remove_ui():
+            material_type.visible = True
+            texture_type.visible = True
+            colour_button.visible = True
             for x in object_tile.controls:
                 if x._get_control_name() == "text":
                     if x.value == "Stopper":
@@ -1443,20 +1450,16 @@ def main(page):
         
         
         def remove_img(e):
-            if img.src == "test_image.png":
-                pass
-            else:
-                if scene_name in names:
-                    names.remove(scene_name)
-                if User_Status:
+            if User_Status:
                     remove_img_from_library(img.src)
                     
             os.remove(img.src)            
             img.src = None
             page.controls.pop(0)
-            page.update()
+           
             if page_tracker != "main":
-                main_menu_Button.on_click(e)
+                switch_to_main_ui(e)
+            page.update()
         
         
         def img_to_library(e):
@@ -1488,9 +1491,6 @@ def main(page):
             page.add(file_picker)
             file_picker.get_directory_path(dialog_title="Select Directory")
 
-            page.overlay.append(file_picker)
-
-            file_picker.get_directory_path(dialog_title="Select Directory")
             page.update()
 
        
@@ -1517,6 +1517,7 @@ def main(page):
         
         def img_showcaser(e):
             page.controls.clear()
+            global page_tracker
             page_tracker = "showcaser"
             print("the image is ",img.src)
             if User_Status:

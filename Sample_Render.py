@@ -1,6 +1,6 @@
 from Maths import Vector
 from scene import Scene,camera
-from objects import Sphere , Cone,Ellipsoid,Cylinder,Floor,Cube
+from objects import Sphere , Cone,Ellipsoid,Cylinder,Floor,Cube,Tetrahedron
 from image import colour
 from engine import engine
 from light import light
@@ -32,7 +32,9 @@ height = 200
 myobj = Sphere(Vector(0, 0, 5), 1.5, colour(0,0,1),[0.6,0.2,0.2,0.4])   #low reflection val dont work now
 
 
-mycam = camera(Vector(0, 0, -1),180)
+mycam = camera(Vector(0, 0, -1),120)
+
+
 s1 = Sphere(Vector(0,-1,2), 0.5, None,[0.5,0.5,0.0,0.0],marble_texture())
 
 ls = Sphere(Vector(0,10000.5,1), 10000, None,[0.5,0.5,0.0,0.0],gradient_texture())
@@ -43,10 +45,10 @@ f1 = Floor(colour(0,0,0),[0.5,0.5,0.0,0.0],checker_texture())
 #cube1 = Cube(Vector(-2,0,3),2,colour(1,0,0),[0.5,0.5,0.0,0.0],checker_texture())
 
 rcube = Cube(Vector(0,0,3),2,Vector(0, math.radians(30), 0),colour(1,0,0),[0.5,0.5,0.0,0.0],checker_texture())
-
+t1 = Tetrahedron(Vector(-8,0,5),3,colour(1,0,0),[0.5,0.5,0.0,0.0])
 objects = []
-objects.append(s1)
-objects.append(f1)
+objects.append(t1)
+
 
 
 

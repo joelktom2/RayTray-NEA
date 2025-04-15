@@ -106,3 +106,13 @@ def load_object(user_id, obj_id):
     
     return json.loads(result[0])
 
+def get_obj_id(user_id, obj_name):
+    connection = sqlite3.connect('data.db')
+    cursor = connection.cursor()
+    cursor.execute("SELECT ObjectID FROM Objects WHERE UserID = ? AND ObjectName = ?", (user_id, obj_name))
+    result = cursor.fetchone()
+    connection.close()
+    
+    if result:
+        return result[0]
+    return None

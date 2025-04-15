@@ -49,8 +49,7 @@ class engine:
             if i_p == None:
                 continue
             nd = (cam - i_p).mag()
-            #print(nd) 
-            #print(d)
+
             
             if d == 0:
                 d = nd
@@ -137,12 +136,10 @@ class engine:
         
         object_hit,intersect_point = self.nearest(scene,ray)
         
-        if object_hit == None:
-            
-            pass
         
         if object_hit == None or intersect_point == None:
             return fcolour
+        
         
                 
         fcolour += self.colour_at(scene,object_hit,intersect_point) # returns the colour of the object at the point of intersection

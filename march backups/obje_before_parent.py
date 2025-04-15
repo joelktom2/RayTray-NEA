@@ -5,11 +5,11 @@ from Maths import Vector,Matrix
 
 
 
-class Shape:
-    def __init__(self,colour=colour(0,0,0), mat=[0.5,0.5,0.0,0.0], texture=None):
-        self.colour = colour      # Base colour of the object            
-        self.material = material(colour, mat[0], mat[1], mat[2], mat[3], texture) #material properties of the object
-    
+class Object:
+    def __init__(self, position, colour=colour(0,0,0), mat=[0.5,0.5,0.0,0.0], texture=None, rotation=None):
+        self.position = position  # Base position/center of the object
+        self.colour = colour      # Base colour of the object
+        self.material = material(colour, mat[0], mat[1], mat[2], mat[3], texture)
     def get_normal(self, point):
         raise NotImplementedError("Subclasses must implement get_normal")
     
@@ -20,11 +20,13 @@ class Shape:
         return f"Position: {self.position}, Colour: {self.colour}"
 
 
-class Sphere(Shape):
+class Sphere():
     def __init__(self, center, radius,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
-        super().__init__(colour, mat, texture)
         self.center = center       # (x,y,z) coordinates of the center of the sphere
         self.radius = radius       # radius of the sphere integer 
+        self.colour = colour        #base colour of the sphere (r,g,b)
+        self.material = material(colour,mat[0],mat[1],mat[2],mat[3],texture)  # material properties of the sphere
+
 
     def __str__(self):
         return f"Center: {self.center}, Radius: {self.radius}, Colour: {self.colour}"
@@ -73,13 +75,15 @@ class Floor(Sphere):
         super().__init__(Vector(0,10000.5,1), 10000, colour, mat, texture)
     
 
-class Cone(Shape):
-    def __init__(self,tip,axis,angle,height=None,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
-        super().__init__(colour, mat, texture)
+class Cone():
+    def __init__(self, tip,axis,angle,height=None,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
         self.tip = tip       # (x,y,z) coordinates of the tip of the cone
         self.axis = axis.norm()     # (x,y,z) coordinates of the axis of the cone
         self.angle = angle      # angle between axis and the side of the cone
         self.height = height    # height of the cone
+        self.colour = colour        #base colour of the sphere (r,g,b)
+        self.material = material(colour,mat[0],mat[1],mat[2],mat[3],texture)  # material properties of the sphere
+
 
     def __str__(self):
         return f"Tip: {self.tip}, Axis: {self.axis}, Colour: {self.colour}"
@@ -158,9 +162,8 @@ class Cone(Shape):
         return ray.point(min(intersections)) if intersections else None
 
 
-class Cylinder(Shape):  
+class Cylinder():  
     def __init__(self,center,allingment,height,radius,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
-        super().__init__(colour, mat, texture)
         self.center = center       # (x,y,z) coordinates of the center of the Ellipsoid
         if allingment == 'x':
             self.axis = Vector(1,0,0)
@@ -174,6 +177,10 @@ class Cylinder(Shape):
         self.height = height
         self.radius = radius   #  a b and c values of the ellipsoid
         
+        
+        
+        self.colour = colour        #base colour of the Ellipsoid (r,g,b)
+        self.material = material(colour,mat[0],mat[1],mat[2],mat[3],texture)  # material properties of the Ellipsoid
 
     def __str__(self):
         return f"Center: {self.center}, Radius: {self.abc}, Colour: {self.colour} texture : {self.material.texture}"
@@ -246,13 +253,12 @@ class Cylinder(Shape):
         return ray.point(min(intersections)) if intersections else None
 
 
-class Ellipsoid(Shape):
+class Ellipsoid():
     def __init__(self,center,abc=Vector(1,1,1),colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
-        super().__init__(colour, mat, texture)
         self.center = center       # (x,y,z) coordinates of the center of the Ellipsoid
         self.abc =  abc      #  a b and c values of the ellipsoid
-
-
+        self.colour = colour        #base colour of the Ellipsoid (r,g,b)
+        self.material = material(colour,mat[0],mat[1],mat[2],mat[3],texture)  # material properties of the Ellipsoid
 
     def __str__(self):
         return f"Center: {self.center}, Radius: {self.abc}, Colour: {self.colour} texture : {self.material.texture}"
@@ -295,12 +301,12 @@ class Ellipsoid(Shape):
 
 
 
-class Cube(Shape):
+class Cube:
     def __init__(self, center, side_length, rotation=Vector(0, 0, 0), colour=colour(0, 0, 0), mat=[0.5, 0.5, 0.0, 0.0], texture=None):
-        super().__init__(colour, mat, texture)
         self.center = center
         self.side_length = side_length
-
+        self.colour = colour
+        self.material = material(colour, mat[0], mat[1], mat[2], mat[3], texture)
 
         # Build rotation matrix
         self.rotation = rotation
@@ -369,135 +375,3 @@ class Cube(Shape):
         hit_local = local_origin + local_direction * t_min
         hit_world = Matrix.rotate_vector(hit_local, self.rotation_matrix) + self.center
         return hit_world
-
-
-
-
-class Triangle(Shape):
-    def __init__(self,v0,v1,v2,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
-        super().__init__(colour, mat, texture)
-        self.v0 = v0
-        self.v1 = v1
-        self.v2 = v2
-    
-    def intersects(self, ray):
-        EPSILON = 1e-6
-        v0 = self.v0
-        v1 = self.v1
-        v2 = self.v2
-        
-        edge1 = v1 - v0
-        edge2 = v2 - v0
-        h = ray.direction.cp(edge2)
-        a = edge1.dp(h)
-        
-        if -EPSILON < a < EPSILON:
-            return None  # Ray is parallel to the triangle
-        
-        f = 1.0 / a
-        s = ray.origin - v0
-        u = f * s.dp(h)
-        
-        if u < 0.0 or u > 1.0:
-            return None
-        
-        q = s.cp(edge1)
-        v = f * ray.direction.dp(q)
-        
-        if v < 0.0 or u + v > 1.0:
-            return None
-        
-        t = f * edge2.dp(q)
-        
-        if t > EPSILON:
-            # print(ray.point(t))
-            return ray.point(t)  # intersection point
-        else:
-            return None  # intersection behind the origin
-        
-    def get_normal(self):
-        edge1 = self.v1 - self.v0
-        edge2 = self.v2 - self.v0
-        return (edge1.cp(edge2)).norm()
-    def contains(self, point):
-        # Same as barycentric check, but built into the Triangle
-        epsilon=1e-6
-        v0 = self.v0
-        v1 = self.v1
-        v2 = self.v2
-        u = v1 - v0
-        v = v2 - v0
-        w = point - v0
-
-        uu = u.dp(u)
-        uv = u.dp(v)
-        vv = v.dp(v)
-        wu = w.dp(u)
-        wv = w.dp(v)
-
-        denom = uv * uv - uu * vv
-        if abs(denom) < epsilon:
-            return False  # Degenerate triangle
-
-        s = (uv * wv - vv * wu) / denom
-        t = (uv * wu - uu * wv) / denom
-
-        return (s >= -epsilon) and (t >= -epsilon) and (s + t <= 1 + epsilon)
-
-
-
-def tetrahedron_vertices(center, side_length):
-    # Height from base to apex
-    h = math.sqrt(2/3) * side_length
-
-    # Radius of base triangle from center
-    r = side_length / math.sqrt(3)
-
-    # z-offset to center tetrahedron at origin
-    z_offset = -h / 4
-
-    # Base triangle (equilateral, in xy-plane, centered below origin)
-    v1 = Vector(r, 0, z_offset)
-    v2 = Vector(-r/2,  (r * math.sqrt(3))/2, z_offset)
-    v3 = Vector(-r/2, -(r * math.sqrt(3))/2, z_offset)
-
-    # Apex above the base
-    v4 = Vector(0, 0, h * 3/4)
-
-    # Translate all points so that the centroid is at 'center'
-    vertices = [v1, v2, v3, v4]
-    centroid = sum(vertices, Vector(0, 0, 0)) * (1 / 4)
-    offset = center - centroid
-    vertices = [v + offset for v in vertices]
-    return vertices[0],vertices[1],vertices[2],vertices[3]
-
-
-
-
-
-class Tetrahedron(Shape):
-    def __init__(self, center, radius,colour=colour(1,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
-        super().__init__(colour, mat, texture)
-        self.center = center       # (x,y,z) coordinates of the center of the sphere
-        self.radius = radius       # radius of the sphere integer 
-        a, b, c, d = tetrahedron_vertices(center,radius)
-        self.faces = [
-            Triangle(c,b,a, colour, mat, texture),
-            Triangle(d,b,a, colour, mat, texture),
-            Triangle(d,c,a, colour, mat, texture),
-            Triangle(d,c,b, colour, mat, texture)
-        ]
-
-    def intersects(self, ray):
-        intersections = [face.intersects(ray) for face in self.faces]
-        intersections = [p for p in intersections if p is not None]
-        if intersections:
-            return min(intersections, key=lambda p: (p - ray.origin).mag())
-        return None
-    
-    def get_normal(self,point):
-        # You might want to find which face the point lies on and return that normal.
-        for face in self.faces:
-            if face.contains(point):  # You'd implement this in Triangle
-                return face.get_normal()
-        return None

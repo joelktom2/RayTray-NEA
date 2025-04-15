@@ -9,9 +9,9 @@ class colour(Vector):
             return None
         hex = hex.lstrip('#')
         
-        r = int(int(hex[0:2], 16)/255)
-        g = int(int(hex[2:4], 16)/255)
-        b = int(int(hex[4:6], 16)/255)
+        r = int(hex[0:2], 16)/255.0
+        g = int(hex[2:4], 16)/255.0
+        b = int(hex[4:6], 16)/255.0
         return colour(r, g, b)
     
     def rgb_to_hex(self):         # converts rgb colour to hex colour
