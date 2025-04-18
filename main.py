@@ -470,6 +470,10 @@ def main(page):
                 position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
                 radius = float(obj_data["radius"])
                 myobj1 = Sphere(position, radius,obj_colour,obj_material,texture)
+            elif obj_data["type"] == "Tetrahedron":
+                position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
+                side_length = float(obj_data["radius"])
+                myobj1 = Tetrahedron(position,side_length,obj_colour,obj_material,texture)
             elif obj_data["type"] == "Cone":
                 tip = Vector(obj_data["tip"][0],obj_data["tip"][1],obj_data["tip"][2])
                 axis = Vector(obj_data["cone_axis"][0],obj_data["cone_axis"][1],obj_data["cone_axis"][2])
@@ -1247,7 +1251,9 @@ def main(page):
                      ft.dropdown.Option("Cone",on_click= add_cone_ui),
                      ft.dropdown.Option("Ellipsoid",on_click= add_Ellipsoid_ui),
                      ft.dropdown.Option("Cylinder",on_click= add_Cylinder_ui),
-                    ft.dropdown.Option("Cube",on_click= add_Cube_ui),
+                     ft.dropdown.Option("Cube",on_click= add_Cube_ui),
+                    ft.dropdown.Option("Tetrahedron",on_click= add_Sphere_ui),
+
                      ],
             width=150,
             border_color= ft.colors.GREEN_800,

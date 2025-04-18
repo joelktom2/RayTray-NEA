@@ -204,7 +204,7 @@ class Matrix():
         ])
 
         # Combine: R = Rz * Ry * Rx
-        # Note: Matrix multiplication is NOT commutative, so order matters!
+        
         return Rz * Ry * Rx
 
 

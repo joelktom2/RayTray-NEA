@@ -5,16 +5,16 @@ from Maths import Vector,Matrix
 
 
 
-class Shape:
+class Shape:  #parent class for all the different objects
     def __init__(self,colour=colour(0,0,0), mat=[0.5,0.5,0.0,0.0], texture=None):
         self.colour = colour      # Base colour of the object            
         self.material = material(colour, mat[0], mat[1], mat[2], mat[3], texture) #material properties of the object
     
     def get_normal(self, point):
-        raise NotImplementedError("Subclasses must implement get_normal")
+        raise NotImplementedError("Subclasses must implement get_normal")   #ensure the subclasses implement this method
     
     def intersects(self, ray):
-        raise NotImplementedError("Subclasses must implement intersects")
+        raise NotImplementedError("Subclasses must implement intersects") #ensure the subclasses implement this method
     
     def __str__(self):
         return f"Position: {self.position}, Colour: {self.colour}"
@@ -230,14 +230,15 @@ class Cylinder(Shape):
                     return t_cap
             return None
         
-        #height check
+        
         def is_valid(t):
+            # Check if the point is within the height of the cylinder
             if t < 0:
                 return False
             point = ray.point(t)
             # Project the vector (point - center) onto the axis to get height
             height_projection = (point - self.center).dp(self.axis)
-            return abs(height_projection) <= (self.height/2) #hegiht
+            return abs(height_projection) <= (self.height/2) 
         
         intersections = [t for t in (t1, t2) if is_valid(t)]
         t3 = intersects_cap()
@@ -250,7 +251,7 @@ class Ellipsoid(Shape):
     def __init__(self,center,abc=Vector(1,1,1),colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
         super().__init__(colour, mat, texture)
         self.center = center       # (x,y,z) coordinates of the center of the Ellipsoid
-        self.abc =  abc      #  a b and c values of the ellipsoid
+        self.abc =  abc      #  a b and c values of the ellipsoid taken as a vector for simplicity
 
 
 
@@ -292,7 +293,6 @@ class Ellipsoid(Shape):
             return ray.point(t2)  
         else:
             return None
-
 
 
 class Cube(Shape):
@@ -371,8 +371,6 @@ class Cube(Shape):
         return hit_world
 
 
-
-
 class Triangle(Shape):
     def __init__(self,v0,v1,v2,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
         super().__init__(colour, mat, texture)
@@ -445,7 +443,6 @@ class Triangle(Shape):
         return (s >= -epsilon) and (t >= -epsilon) and (s + t <= 1 + epsilon)
 
 
-
 def tetrahedron_vertices(center, side_length):
     # Height from base to apex
     h = math.sqrt(2/3) * side_length
@@ -470,10 +467,6 @@ def tetrahedron_vertices(center, side_length):
     offset = center - centroid
     vertices = [v + offset for v in vertices]
     return vertices[0],vertices[1],vertices[2],vertices[3]
-
-
-
-
 
 class Tetrahedron(Shape):
     def __init__(self, center, radius,colour=colour(1,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):

@@ -1,7 +1,7 @@
 from Maths import Vector 
 
 
-class colour(Vector):
+class colour(Vector): #inherits from Vector class , x,y,z maps to the r,g,b values of the colour
     
     def hex_to_rgb(hex):         # converts hex colour to rgb colour
        

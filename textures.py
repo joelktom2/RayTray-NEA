@@ -2,7 +2,14 @@ from image import colour
 import math
 import random
 
-class checker_texture:
+class Texture:
+    def __init__(self):
+        pass
+
+    def get_colour(self, point):
+        raise NotImplementedError("Subclasses must implement a get_colour method.")
+
+class checker_texture(Texture):
     def __init__(self, colour1=colour(1,0,0), colour2=colour(0,0,1), scale=1):
         self.colour1 = colour1
         self.colour2 = colour2
@@ -19,7 +26,7 @@ class checker_texture:
         else:
             return self.colour2
             
-class gradient_texture:
+class gradient_texture(Texture):
     def __init__(self, color_start=colour(1, 0, 0), color_end=colour(0, 0, 1)):
         self.color_start = color_start
         self.color_end = color_end
@@ -33,7 +40,7 @@ class gradient_texture:
             (1 - t) * self.color_start.z + t * self.color_end.z,
         )
     
-class noise_texture:
+class noise_texture(Texture):
     def __init__(self,colour1=colour(1, 1, 1), colour2=colour(0, 0, 0),):
         self.noise_generator = ValueNoise3D(grid_size=32)
         self.colour1 = colour1
@@ -125,7 +132,7 @@ class ValueNoise3D:
         return lerp(nxy0, nxy1, w)
 
 
-class wood_texture():
+class wood_texture(Texture):
     def __init__(self, colour1=colour(0.8, 0.6, 0.3), colour2=colour(0.6, 0.4, 0.2)):
         self.noise_generator = ValueNoise3D(grid_size=32)
         self.colour1 = colour1
@@ -143,7 +150,7 @@ class wood_texture():
             (1 - grain) * self.colour1.z + grain * self.colour2.z
         )
     
-class marble_texture():
+class marble_texture(Texture):
     def __init__(self,colour1=colour(0.95, 0.95, 0.95),colour2=colour(0.6, 0.6, 0.6)):
         self.noise_generator = ValueNoise3D(grid_size=32)
         self.colour1 = colour1
@@ -164,7 +171,7 @@ class marble_texture():
             (1 - t) * self.colour1.z + t * self.colour2.z
         )
     
-class smoke_texture():
+class smoke_texture(Texture):
     def __init__(self, colour1=colour(1, 1, 1), colour2=colour(0.8, 0.8, 0.8)):
         self.noise_generator = ValueNoise3D(grid_size=32)
         self.colour1 = colour1
