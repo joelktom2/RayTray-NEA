@@ -62,7 +62,6 @@ def get_object_data(obj):
         "cone_angle": getattr(obj, 'angle', None),    
         "height": getattr(obj, 'height', None),
         "radius": getattr(obj, 'radius', None),
-        "cylinder_radius": getattr(obj, 'cylinder_radius', None),
         "object_rotation": object_rotation,
         "colour": colour,    
         "material": (obj.material).values(),

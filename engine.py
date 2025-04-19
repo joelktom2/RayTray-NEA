@@ -3,6 +3,8 @@ from image import Image
 from Maths import Ray,Vector
 import math
 
+MAX_DEPTH = 3
+BG_COLOR = colour(0,0,0) #default background colour : black
 
 class engine:
     
@@ -130,9 +132,9 @@ class engine:
     
     
     def ray_trace(self,ray,scene,depth = 0):
-        MAX_DEPTH = 3
         
-        fcolour = colour(0,0,0) #defualt colour : black
+        
+        fcolour = BG_COLOR #defualt colour : black
         
         object_hit,intersect_point = self.nearest(scene,ray)
         

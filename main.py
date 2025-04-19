@@ -276,12 +276,17 @@ def main(page):
                 light_error_message.visible = False
                 position_parts = light_pos.value.split(",")
                 x, y, z = map(float, position_parts)
-                mylight = light(Vector(x, y, z),colour(1,1,1))
+                if float(brightness_slider.value) <= 0.5:
+                    light_error_message.value = "Warning: Brightness under 0.5 is too dim ,objects may not be clearly visible"
+                    light_error_message.visible = True
+                    
+                
+                mylight = light(Vector(x, y, z),colour(1,1,1),float(brightness_slider.value))
                 lights.append(mylight)
 
                 added_lights.controls.append(
                     ft.Row(
-                        [(ft.Text(f"Position: {light_pos.value}")),Remove_ButtonLite(text="Remove", on_click=lambda e: remove_light(e, mylight))] , alignment=ft.MainAxisAlignment.CENTER
+                        [(ft.Text(f"Position: {light_pos.value} Brightness: {brightness_slider.value}")),Remove_ButtonLite(text="Remove", on_click=lambda e: remove_light(e, mylight))] , alignment=ft.MainAxisAlignment.CENTER
                         
                     ),
                 )
@@ -486,7 +491,7 @@ def main(page):
                 myobj1 = Ellipsoid(position, abc,obj_colour,obj_material,texture)
             elif obj_data["type"] == "Cylinder":
                 position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
-                radius = float(obj_data["cylinder_radius"])
+                radius = float(obj_data["radius"])
                 height = float(obj_data["height"])
                 if obj_data["cylinder_allignment"] == "Horizontal(X)":
                     myobj1 = Cylinder(position,"x",height,radius,obj_colour,obj_material,texture)
@@ -494,6 +499,16 @@ def main(page):
                     myobj1 = Cylinder(position,"y",height,radius,obj_colour,obj_material,texture)
                 else:
                     myobj1 = Cylinder(position,"z",height,radius,obj_colour,obj_material,texture)
+            elif obj_data["type"] == "Capsule":
+                position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
+                radius = float(obj_data["radius"])
+                height = float(obj_data["height"])
+                if obj_data["cylinder_allignment"] == "Horizontal(X)":
+                    myobj1 = Capsule(position,"x",height,radius,obj_colour,obj_material,texture)
+                elif obj_data["cylinder_allignment"] == "Vertical(y)":
+                    myobj1 = Capsule(position,"y",height,radius,obj_colour,obj_material,texture)
+                else:
+                    myobj1 = Capsule(position,"z",height,radius,obj_colour,obj_material,texture)
             elif obj_data["type"] == "Cube":
                 position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
                 side_length = float(obj_data["radius"])
@@ -529,9 +544,13 @@ def main(page):
                 pass
             elif object_type.value == "Ellipsoid" and validate_inputs_for_Ellipsoid() == False:
                 pass
+            elif object_type.value == "Capsule" and validate_inputs_for_Cylinder() == False:
+                pass
             elif object_type.value == "Cylinder" and validate_inputs_for_Cylinder() == False:
                 pass
             elif object_type.value == "Cube" and validate_inputs_for_cube() == False:
+                pass
+            elif object_type.value == "Tetrahedron" and validate_inputs_for_sphere() == False:
                 pass
             else:
                 if object_type.value.startswith("Custom"):
@@ -624,6 +643,16 @@ def main(page):
                             myobj1 = Cylinder(position,"y",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
                         else:
                             myobj1 = Cylinder(position,"z",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                    elif object_type.value == "Capsule":
+                        position = string_coords_to_Vector(object_position.value)
+                        radius = float(cylinder_radius.value)
+                        height = float(object_radius.value)
+                        if cylinder_allignment.value == "Horizontal(X)":
+                            myobj1 = Capsule(position,"x",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                        elif cylinder_allignment.value == "Vertical(y)":
+                            myobj1 = Capsule(position,"y",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                        else:
+                            myobj1 = Capsule(position,"z",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
                     elif object_type.value == "Cube":
                         position = string_coords_to_Vector(object_position.value)
                         side_length = float(object_radius.value)
@@ -1228,9 +1257,16 @@ def main(page):
         
 
         render_name = ft.TextField(label="Render Name",hint_text="e.g., My_Render", width=600,border_color=ft.colors.GREEN_800)
-        light_pos = ft.TextField(label="Light Source Postion",hint_text="e.g. x, y, z", width=600,border_color=ft.colors.GREEN_800)
+        light_pos = ft.TextField(label="Light Source Postion",hint_text="e.g. x, y, z", width=325,border_color=ft.colors.GREEN_800)
+        brightness_slider = ft.Slider(min=0,value = 1, max=1, divisions=10,round=1,label="Brightness: {value}",width=400)
         cam_pos = ft.TextField(label= "Camera Postion",hint_text="e.g. x, y, z", width=300,border_color=ft.colors.GREEN_800)
         fov_slider = ft.Slider(min=20,value = 90, max=150, divisions=130,label="FOV: {value}",width=400)
+        
+        brightness_tile = ft.Column(
+            [ft.Text("Light Brightness"),brightness_slider],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=1,
+        )
         
         fov_tile = ft.Column(
             [ft.Text("Camera FOV"),fov_slider],
@@ -1252,7 +1288,8 @@ def main(page):
                      ft.dropdown.Option("Ellipsoid",on_click= add_Ellipsoid_ui),
                      ft.dropdown.Option("Cylinder",on_click= add_Cylinder_ui),
                      ft.dropdown.Option("Cube",on_click= add_Cube_ui),
-                    ft.dropdown.Option("Tetrahedron",on_click= add_Sphere_ui),
+                     ft.dropdown.Option("Tetrahedron",on_click= add_Sphere_ui),
+                    ft.dropdown.Option("Capsule",on_click= add_Cylinder_ui),
 
                      ],
             width=150,
@@ -1622,7 +1659,7 @@ def main(page):
                     name_error_message,
                     current_name,
                     ft.Row(
-                        [light_pos,add_light_button], alignment=ft.MainAxisAlignment.CENTER
+                        [light_pos,brightness_tile,add_light_button], alignment=ft.MainAxisAlignment.CENTER
                         
                     ),
                     light_error_message,
