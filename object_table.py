@@ -31,9 +31,9 @@ def get_object_data(obj):
     if tip != None:
         tip = tip.values()
     
-    cone_axis = getattr(obj, 'axis', None)
-    if cone_axis != None:
-        cone_axis = cone_axis.values()
+    axis = getattr(obj, 'axis', None)
+    if axis != None:
+        axis = axis.values()
     
     abc = getattr(obj, 'abc', None)
     if abc != None:
@@ -57,9 +57,9 @@ def get_object_data(obj):
         "center": center,       
         "tip": tip,       
         "abc": abc,
-        "cylinder_allignment": getattr(obj, 'allignment', None),   
-        "cone_axis": cone_axis,    
-        "cone_angle": getattr(obj, 'angle', None),    
+        "allignment": getattr(obj, 'allignment', None),   #allignment is a typo in the original code
+        "axis": axis,    
+        "angle": getattr(obj, 'angle', None),    
         "height": getattr(obj, 'height', None),
         "radius": getattr(obj, 'radius', None),
         "object_rotation": object_rotation,

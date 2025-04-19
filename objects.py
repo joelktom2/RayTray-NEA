@@ -159,16 +159,17 @@ class Cone(Shape):
 
 
 class Cylinder(Shape):  
-    def __init__(self,center,allingment,height,radius,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
+    def __init__(self,center,allignment,height,radius,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
         super().__init__(colour, mat, texture)
         self.center = center       # (x,y,z) coordinates of the center of the Clinder
-        if allingment == 'x':
+        self.allignment = allignment
+        if allignment == 'x':
             self.axis = Vector(1,0,0)
             self.abc = Vector(100,radius,radius)
-        elif allingment == 'y':
+        elif allignment == 'y':
             self.axis = Vector(0,1,0)
             self.abc = Vector(radius,100,radius)
-        elif allingment == 'z':
+        elif allignment == 'z':
             self.axis = Vector(0,0,1)
             self.abc = Vector(radius,radius,100)
         self.height = height
@@ -502,18 +503,19 @@ class Tetrahedron(Shape):
 
 class Capsule(Shape):
     
-    def __init__(self,center,allingment,height,radius, colour=colour(0,0,0), mat=[0.5,0.5,0.0,0.0], texture=None):
+    def __init__(self,center,allignment,height,radius, colour=colour(0,0,0), mat=[0.5,0.5,0.0,0.0], texture=None):
         super().__init__(colour, mat, texture)
-        self.cylinder = Cylinder(center, allingment, height, radius, colour, mat, texture)
+        self.cylinder = Cylinder(center, allignment, height, radius, colour, mat, texture)
         self.axis = self.cylinder.axis
         self.center = center
         self.height = height
         self.radius = radius
+        self.allignment = allignment
         self.sphere1 = Sphere(center + (self.axis * (height / 2)), radius, colour, mat, texture)
         self.sphere2 = Sphere(center - (self.axis * (height / 2)), radius, colour, mat, texture)
         
     def intersects(self, ray):
-        # Get intersections from all parts
+       
         hits = []
         for obj in [self.sphere1, self.sphere2, self.cylinder]:
             hit = obj.intersects(ray)
@@ -522,7 +524,7 @@ class Capsule(Shape):
                 hits.append((dist, hit))
 
         if hits:
-            return min(hits, key=lambda x: x[0])[1]  # Return closest hit
+            return min(hits, key=lambda x: x[0])[1]  
         return None
     
     def get_normal(self, point):

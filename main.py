@@ -481,8 +481,8 @@ def main(page):
                 myobj1 = Tetrahedron(position,side_length,obj_colour,obj_material,texture)
             elif obj_data["type"] == "Cone":
                 tip = Vector(obj_data["tip"][0],obj_data["tip"][1],obj_data["tip"][2])
-                axis = Vector(obj_data["cone_axis"][0],obj_data["cone_axis"][1],obj_data["cone_axis"][2])
-                angle = float(obj_data["cone_angle"])
+                axis = Vector(obj_data["axis"][0],obj_data["axis"][1],obj_data["axis"][2])
+                angle = float(obj_data["angle"])
                 height = float(obj_data["height"])
                 myobj1 = Cone(tip,axis,angle,height,obj_colour,obj_material,texture)
             elif obj_data["type"] == "Ellipsoid":
@@ -493,22 +493,17 @@ def main(page):
                 position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
                 radius = float(obj_data["radius"])
                 height = float(obj_data["height"])
-                if obj_data["cylinder_allignment"] == "Horizontal(X)":
-                    myobj1 = Cylinder(position,"x",height,radius,obj_colour,obj_material,texture)
-                elif obj_data["cylinder_allignment"] == "Vertical(y)":
-                    myobj1 = Cylinder(position,"y",height,radius,obj_colour,obj_material,texture)
-                else:
-                    myobj1 = Cylinder(position,"z",height,radius,obj_colour,obj_material,texture)
+                allignment = obj_data["allignment"]
+                myobj1 = Cylinder(position,allignment,height,radius,obj_colour,obj_material,texture)
+                
             elif obj_data["type"] == "Capsule":
                 position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
                 radius = float(obj_data["radius"])
                 height = float(obj_data["height"])
-                if obj_data["cylinder_allignment"] == "Horizontal(X)":
-                    myobj1 = Capsule(position,"x",height,radius,obj_colour,obj_material,texture)
-                elif obj_data["cylinder_allignment"] == "Vertical(y)":
-                    myobj1 = Capsule(position,"y",height,radius,obj_colour,obj_material,texture)
-                else:
-                    myobj1 = Capsule(position,"z",height,radius,obj_colour,obj_material,texture)
+                allignment = obj_data["allignment"]
+                myobj1 = Capsule(position,allignment,height,radius,obj_colour,obj_material,texture)
+                
+ 
             elif obj_data["type"] == "Cube":
                 position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
                 side_length = float(obj_data["radius"])
