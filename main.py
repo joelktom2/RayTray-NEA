@@ -6,9 +6,8 @@ from engine import engine
 from scene import Scene,camera
 from light import light
 from loginsys import create_user,login_user,get_user_id
-from scenes_table import create_scene,get_scenes,get_scene_names,remove_scene
+from scenes_table import create_scene,get_scenes,remove_scene
 from object_table import save_object,load_objects,load_object,get_obj_id
-from material import material
 from textures import *
 
 #3rd part libraries
@@ -335,7 +334,7 @@ def main(page):
             page.update()    
         
         
-        def validate_inputs_for_sphere():
+        def validate_inputs_for_Sphere():
             if validcoord(object_position.value) == False:
                 obj_error_message.value = "Please enter a valid position"
                 obj_error_message.visible = True
@@ -354,7 +353,7 @@ def main(page):
                 return False
             return True
         
-        def validate_inputs_for_floor():
+        def validate_inputs_for_Floor():
 
             if colour_button.visible == True and selected_color == None:
                 obj_error_message.value = "Please select a color"
@@ -363,8 +362,8 @@ def main(page):
                 return False
             return True
         
-        def validate_inputs_for_cone():
-            if validate_inputs_for_sphere() == False:
+        def validate_inputs_for_Cone():
+            if validate_inputs_for_Sphere() == False:
                 return False
             elif validcoord(cone_axis.value) == False:
                 obj_error_message.value = "Please enter a valid axis"
@@ -404,7 +403,7 @@ def main(page):
             return True
         
         def validate_inputs_for_Cylinder():
-            if validate_inputs_for_sphere() == False:
+            if validate_inputs_for_Sphere() == False:
                 return False
             elif cylinder_radius.visible == False or validradius(cylinder_radius.value) == False:
                 obj_error_message.value = "Please enter a valid cylinder radius"
@@ -424,8 +423,8 @@ def main(page):
                 return False
             return True
         
-        def validate_inputs_for_cube():
-            if validate_inputs_for_sphere() == False:
+        def validate_inputs_for_Cube():
+            if validate_inputs_for_Sphere() == False:
                 return False
             
             if object_rotation.value:
@@ -435,7 +434,16 @@ def main(page):
                     page.update()
                     return False
             return True
+        
+        def validate_inputs_for_Capsule():
+            if validate_inputs_for_Cylinder() == False:
+                return False
+            return True
 
+        def validate_inputs_for_Tetrahedron():
+            if validate_inputs_for_Sphere() == False:
+                return False
+            return True
 
         
         def string_coords_to_Vector(value:str) -> object:
@@ -448,24 +456,13 @@ def main(page):
         
         def build_custom_object(obj_data:dict) -> object:
             
-            if obj_data["texture"] == "checker_texture":
-                texture_colour1 = get_colour(obj_data["texture"]["colour1"])
-                texture_colour2 = get_colour(obj_data["texture"]["colour2"])
-                texture = checker_texture(texture_colour1,texture_colour2)
-            elif obj_data["texture"] == "gradient_texture":
-                texture_colour1 = get_colour(obj_data["texture"]["colour1"])
-                texture_colour2 = get_colour(obj_data["texture"]["colour2"])
-                texture = gradient_texture(texture_colour1,texture_colour2)
-            elif obj_data["texture"] == "noise_texture":
-                texture_colour1 = get_colour(obj_data["texture"]["colour1"])
-                texture_colour2 = get_colour(obj_data["texture"]["colour2"])
-                texture = noise_texture(texture_colour1,texture_colour2)
-            elif obj_data["texture"] == "wood_texture":
-                texture_colour1 = get_colour(obj_data["texture"]["colour1"])
-                texture_colour2 = get_colour(obj_data["texture"]["colour2"])
-                texture = wood_texture(texture_colour1,texture_colour2)
+            if obj_data["texture"]:
+                texture_colour1 = get_colour(obj_data["texture_colour1"])
+                texture_colour2 = get_colour(obj_data["texture_colour2"])
+                texture = globals()[obj_data["texture"]](texture_colour1,texture_colour2)
             else:
                 texture = None
+            
             obj_material = [float(obj_data["material"][0]),float(obj_data["material"][1]),float(obj_data["material"][2]),float(obj_data["material"][3])] 
             obj_colour = get_colour(obj_data["colour"])
             
@@ -525,129 +522,136 @@ def main(page):
                 return False
             return True
 
+        def validate_object():
+            validation_functions = {
+                "Sphere": validate_inputs_for_Sphere,
+                "Cube": validate_inputs_for_Cube,
+                "Cone": validate_inputs_for_Cone,
+                "Ellipsoid": validate_inputs_for_Ellipsoid,
+                "Cylinder": validate_inputs_for_Cylinder,
+                "Capsule": validate_inputs_for_Capsule,
+                "Floor": validate_inputs_for_Floor,
+                "Tetrahedron": validate_inputs_for_Tetrahedron,
+
+            }
+            validator = validation_functions.get(object_type.value)
+            if validator:
+                return validator()
+            else:
+                print("object function not found")
+                
+        def handle_custom_object():
+            if ":" in object_type.value:
+                hyphen = object_type.value.find("-")
+                obj_id = int(object_type.value[7:hyphen])
+                myobj1 = build_custom_object(load_object(get_user_id(username.value),obj_id))
+            else:
+                myobj1 = saved_objects[int(object_type.value[6:])-1]
+            
+            return myobj1
+        
+        def handle_texture():
+            if texture_type.value == "Image":
+                if selected_image_texture_file_path.value == None:
+                    obj_error_message.value = "Please select an image for the texture"
+                    obj_error_message.visible = True
+                    page.update()
+                    object_texture = None
+                else:
+                    object_texture = image_texture(selected_image_texture_file_path.value)
+            else:
+                texture_class_name = texture_type.value.lower()+"_texture"
+                if texture_colour1 != None and texture_colour2 != None:       #user chose optional colours
+                    object_texture = globals()[texture_class_name](colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
+                else:
+                    object_texture = globals()[texture_class_name]      #user did not choose optional colours 
+            return object_texture
+        
+        def add_to_added_objects(myobj1):
+            added_objects.controls.append(
+                    ft.Row(
+                        [(ft.Text(f"Type: {object_type.value} Position: {object_position.value}, Color: {selected_color} , Texture: {texture_type.value}")),
+                         Remove_ButtonLite(text="Remove", on_click=lambda e: remove_object(e, myobj1)),
+                         Remove_ButtonLite(text="Save Object", on_click=lambda e: save_custom_object(e, myobj1)) ,
+                         ft.IconButton(icon=ft.icons.CONTENT_COPY_OUTLINED, icon_color=ft.colors.GREEN_800, on_click=lambda e: duplicate_object(e, myobj1))] , 
+                         alignment=ft.MainAxisAlignment.CENTER
+                    ),
+                
+                )
+
+        
         def add_object(e):   #adds an object to the scene
             
             if object_type.value == None:
                 obj_error_message.value = "Please select an object type"
                 obj_error_message.visible = True
                 page.update()
-            elif object_type.value == "Sphere" and validate_inputs_for_sphere() == False:
-                pass
-            elif object_type.value == "Floor" and validate_inputs_for_floor() == False:
-                pass
-            elif object_type.value == "Cone" and validate_inputs_for_cone() == False:
-                pass
-            elif object_type.value == "Ellipsoid" and validate_inputs_for_Ellipsoid() == False:
-                pass
-            elif object_type.value == "Capsule" and validate_inputs_for_Cylinder() == False:
-                pass
-            elif object_type.value == "Cylinder" and validate_inputs_for_Cylinder() == False:
-                pass
-            elif object_type.value == "Cube" and validate_inputs_for_cube() == False:
-                pass
-            elif object_type.value == "Tetrahedron" and validate_inputs_for_sphere() == False:
+            elif not(validate_object()):
+                print("Invalid object")
                 pass
             else:
+                
                 if object_type.value.startswith("Custom"):
-                    if ":" in object_type.value:
-                        hyphen = object_type.value.find("-")
-                        obj_id = int(object_type.value[7:hyphen])
-                        myobj1 = build_custom_object(load_object(get_user_id(username.value),obj_id))
-                    else:
-                        myobj1 = saved_objects[int(object_type.value[6:])-1]
+                    myobj1 = handle_custom_object()
                 else:
                     obj_error_message.visible = False
                     
-                    if texture_type.value == "Checkerboard":
-                        if validate_input_for_double_colour() == False:
-                            return
-                        if texture_colour1 != None and texture_colour2 != None:
-                            object_texture = checker_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
-                        else:
-                            object_texture = checker_texture()
-                    elif texture_type.value == "Gradient":
-                        if validate_input_for_double_colour() == False:
-                            return
+                    if texture_type.value and texture_type.value != "None":
                         
-                        if texture_colour1 != None and texture_colour2 != None:
-                            object_texture = gradient_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
-                        else:
-                            object_texture = gradient_texture()
-                    elif texture_type.value == "Noise":
-                        if validate_input_for_double_colour() == False:
+                        if not(validate_input_for_double_colour()):
                             return
-                        if texture_colour1 != None and texture_colour2 != None:
-                            object_texture = noise_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
-                        else:
-                            object_texture = noise_texture()
-                    
-                    elif texture_type.value == "Wood":
-                        if validate_input_for_double_colour() == False:
+                        object_texture = handle_texture()
+                        if object_texture == None:
                             return
-                        if texture_colour1 != None and texture_colour2 != None:
-                            object_texture = wood_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
-                        else:
-                            object_texture = wood_texture()
-                    
-                    elif texture_type.value == "Marble":
-                        if validate_input_for_double_colour() == False:
-                            return
-                        if texture_colour1 != None and texture_colour2 != None:
-                            object_texture = marble_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
-                        else:
-                            object_texture = marble_texture()
-
-                    elif texture_type.value == "Smoke":
-                        print(texture_colour1)
-                        print(texture_colour2)
-                        if validate_input_for_double_colour() == False:
-                            return
-                        if texture_colour1 != None and texture_colour2 != None:
-                            object_texture = smoke_texture(colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
-                        else:
-                            object_texture = smoke_texture()
+                
                     else:
                         object_texture = None
                     
                     obj_material = [float(Diffuse_input.text_field.value),float(Specular_input.text_field.value),float(Ambient_input.text_field.value),float(reflectivity_input.text_field.value)] 
 
-                    print(obj_material)
-                    print(material_type.value)
+                    obj_colour = colour.hex_to_rgb(selected_color)
+                    
+                    #objects are then specifically handled due to the different parameters
                     if object_type.value == "Floor":
-                        myobj1 = Floor(colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                        myobj1 = Floor(obj_colour,obj_material,object_texture)
+                    
                     elif object_type.value == "Cone":
                         tip = string_coords_to_Vector(object_position.value)
                         axis = string_coords_to_Vector(cone_axis.value)
                         angle = float(math.radians(float(cone_angle.value)))
                         height = float(object_radius.value)
-                        myobj1 = Cone(tip,axis,angle,height,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                        myobj1 = Cone(tip,axis,angle,height,obj_colour,obj_material,object_texture)
+                    
                     elif object_type.value == "Ellipsoid":
                         position = string_coords_to_Vector(object_position.value)
                         a = float(object_abc.controls[0].text_field.value)
                         b = float(object_abc.controls[1].text_field.value)
                         c = float(object_abc.controls[2].text_field.value)
                         abc = Vector(a,b,c)
-                        myobj1 = Ellipsoid(position, abc,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                        myobj1 = Ellipsoid(position, abc,obj_colour,obj_material,object_texture)
+                    
                     elif object_type.value == "Cylinder":
                         position = string_coords_to_Vector(object_position.value)
                         radius = float(cylinder_radius.value)
                         height = float(object_radius.value)
                         if cylinder_allignment.value == "Horizontal(X)":
-                            myobj1 = Cylinder(position,"x",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                            myobj1 = Cylinder(position,"x",height,radius,obj_colour,obj_material,object_texture)
                         elif cylinder_allignment.value == "Vertical(y)":
-                            myobj1 = Cylinder(position,"y",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                            myobj1 = Cylinder(position,"y",height,radius,obj_colour,obj_material,object_texture)
                         else:
-                            myobj1 = Cylinder(position,"z",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                            myobj1 = Cylinder(position,"z",height,radius,obj_colour,obj_material,object_texture)
+                    
                     elif object_type.value == "Capsule":
                         position = string_coords_to_Vector(object_position.value)
                         radius = float(cylinder_radius.value)
                         height = float(object_radius.value)
                         if cylinder_allignment.value == "Horizontal(X)":
-                            myobj1 = Capsule(position,"x",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                            myobj1 = Capsule(position,"x",height,radius,obj_colour,obj_material,object_texture)
                         elif cylinder_allignment.value == "Vertical(y)":
-                            myobj1 = Capsule(position,"y",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                            myobj1 = Capsule(position,"y",height,radius,obj_colour,obj_material,object_texture)
                         else:
-                            myobj1 = Capsule(position,"z",height,radius,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                            myobj1 = Capsule(position,"z",height,radius,obj_colour,obj_material,object_texture)
+                    
                     elif object_type.value == "Cube":
                         position = string_coords_to_Vector(object_position.value)
                         side_length = float(object_radius.value)
@@ -658,25 +662,14 @@ def main(page):
                             rotation.x = float(math.radians(rotation.x))
                             rotation.y = float(math.radians(rotation.y))
                             rotation.z = float(math.radians(rotation.z))
-                        myobj1 = Cube(position,side_length,rotation,colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                        myobj1 = Cube(position,side_length,rotation,obj_colour,obj_material,object_texture)
 
-                    else:
-                        position = string_coords_to_Vector(object_position.value)
-                        myobj1 = globals()[object_type.value](position, float(object_radius.value),colour.hex_to_rgb(selected_color),obj_material,object_texture)
+                    else:   #sphere and tetrahedron
+                        position = string_coords_to_Vector(object_position.value)      
+                        myobj1 = globals()[object_type.value](position, float(object_radius.value),obj_colour,obj_material,object_texture)
                 
                 scene_objects.append(myobj1)
-            
-                added_objects.controls.append(
-                    ft.Row(
-                        [(ft.Text(f"Type: {object_type.value} Position: {object_position.value}, Color: {selected_color}")),
-                         Remove_ButtonLite(text="Remove", on_click=lambda e: remove_object(e, myobj1)),
-                         Remove_ButtonLite(text="Save Object", on_click=lambda e: save_custom_object(e, myobj1)) ,
-                         ft.IconButton(icon=ft.icons.CONTENT_COPY_OUTLINED, icon_color=ft.colors.GREEN_800, on_click=lambda e: duplicate_object(e, myobj1))] , 
-                         alignment=ft.MainAxisAlignment.CENTER
-                    ),
-                
-                )
-                
+                add_to_added_objects(myobj1)
                 page.update()
 
         def remove_object(e, object):  #removes object from the scene
@@ -781,22 +774,27 @@ def main(page):
 
         
         
-        def add_texture(texture:str):
+        def add_texture_ui(e):  #e is the event object of the texture dropdown
+            texture = e.control.value  #name of the texture selected 
             
-            if texture == "None":
-                texture_type.value = None
+            if texture == "Image":
                 double_colour_texture_buttons.visible = False
-                colour_button.visible = True
-                
-            elif texture == "Checkerboard" or texture == "Gradient" or texture == "Noise" or texture == "Wood" or texture == "Marble" or texture == "Smoke":
                 colour_button.visible = False
-                double_colour_texture_buttons.visible = True
-                
-            else:
-                colour_button.visible = True
-                double_colour_texture_buttons.visible = False
+                image_texture_button.visible = True
 
                 
+            
+            elif texture == "None":
+                texture_type.value = None
+                double_colour_texture_buttons.visible = False
+                image_texture_button.visible = False
+                colour_button.visible = True
+                
+            else:
+                colour_button.visible = False
+                image_texture_button.visible = False
+                double_colour_texture_buttons.visible = True
+   
             page.update()
                 
                 
@@ -1354,20 +1352,21 @@ def main(page):
         
         texture_type = ft.Dropdown(
             label= "Texture Type",
-            options=[(ft.dropdown.Option("Checkerboard",on_click= lambda e: add_texture("Checkerboard") ) ) ,
-                     (ft.dropdown.Option("Gradient",on_click= lambda e: add_texture("Gradient") ) ) , 
-                     (ft.dropdown.Option("Noise",on_click= lambda e: add_texture("Noise") ) ) ,
-                     (ft.dropdown.Option("Wood",on_click= lambda e: add_texture("Wood") ) ) ,
-                     (ft.dropdown.Option("Marble",on_click= lambda e: add_texture("Marble") ) ),
-                     (ft.dropdown.Option("Smoke",on_click= lambda e: add_texture("Smoke") ) ),
-                     (ft.dropdown.Option("None",on_click= lambda e: add_texture("None") ) ) ,
-
-
-                    
-                     
+            options=[(ft.dropdown.Option("Checker") ) ,
+                     (ft.dropdown.Option("Gradient") ) , 
+                     (ft.dropdown.Option("Noise") ) ,
+                     (ft.dropdown.Option("Wood") ) ,
+                     (ft.dropdown.Option("Marble") ),
+                     (ft.dropdown.Option("Smoke") ),
+                     (ft.dropdown.Option("Stripes") ),
+                     (ft.dropdown.Option("Radial") ),
+                     (ft.dropdown.Option("Brick") ),
+                     (ft.dropdown.Option("Image") ),
+                     (ft.dropdown.Option("None") ) ,
                     ],
             width=150,
             border_color= ft.colors.GREEN_800,
+            on_change=add_texture_ui,
         )
         
 
@@ -1468,6 +1467,47 @@ def main(page):
                     
             ]
         )
+
+        
+        def pick_files_result(e: FilePickerResultEvent):
+            if e.files:
+                file = e.files[0]
+                selected_image_texture_file.value = f"Selected image: {file.name}"
+                selected_image_texture_file_path.value = file.path
+                
+            else:
+                selected_image_texture_file.value = "No file selected"
+                selected_image_texture_file_path.value = None
+            
+            selected_image_texture_file.update()
+        
+        
+        
+        pick_files_dialog = FilePicker(on_result=pick_files_result)
+        selected_image_texture_file = ft.Text()
+        selected_image_texture_file_path = ft.Text()
+        selected_image_texture_file_path.visible = False
+        page.overlay.append(pick_files_dialog)
+
+        
+        
+        image_texture_button = ft.Row(
+            [
+                ft.ElevatedButton(
+                    "Pick image",
+                    icon=ft.icons.UPLOAD_FILE,
+                    on_click=lambda _: pick_files_dialog.pick_files(
+                        allow_multiple=False,
+                        allowed_extensions=["png", "jpg", "jpeg", "bmp", "gif", "webp"]
+                    ),
+                ),
+                selected_image_texture_file,
+            ]
+        )
+       
+        image_texture_button.visible = False
+
+       
         
         double_colour_texture_buttons.visible = False
         colour_button = pick_color(put_in_selected)
@@ -1630,7 +1670,7 @@ def main(page):
                 stopper,
                 material_tile,
                 material_type,
-                ft.Column([texture_type,double_colour_texture_buttons]),
+                ft.Column([texture_type,double_colour_texture_buttons,image_texture_button]),
                 colour_button,
                 add_object_button,
             ],

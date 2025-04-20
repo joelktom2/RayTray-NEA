@@ -1,6 +1,8 @@
 from image import colour
 import math
 import random
+from Maths import Vector
+from PIL import Image
 
 class Texture:
     def __init__(self):
@@ -10,16 +12,17 @@ class Texture:
         raise NotImplementedError("Subclasses must implement a get_colour method.")
 
 class checker_texture(Texture):
-    def __init__(self, colour1=colour(1,0,0), colour2=colour(0,0,1), scale=1):
+    def __init__(self, colour1=colour(1,0,0), colour2=colour(0,0,1)):
         self.colour1 = colour1
         self.colour2 = colour2
-        self.scale = scale
+        
 
     def get_colour(self, point):
+        scale =1 
         x = point.x
         y = point.y
         z = point.z
-        checker = (math.floor(x * self.scale) + math.floor(y * self.scale) + math.floor(z * self.scale)) % 2
+        checker = (math.floor(x * scale) + math.floor(y * scale) + math.floor(z * scale)) % 2
         
         if checker == 0:
             return self.colour1
@@ -41,16 +44,17 @@ class gradient_texture(Texture):
         )
     
 class noise_texture(Texture):
-    def __init__(self,colour1=colour(1, 1, 1), colour2=colour(0, 0, 0),):
+    def __init__(self,colour1=colour(1, 1, 1), colour2=colour(0, 0, 0)):
         self.noise_generator = ValueNoise3D(grid_size=32)
         self.colour1 = colour1
         self.colour2 = colour2
-        self.scale = 5
+        
 
     def get_colour(self, point):
-        x = point.x * self.scale
-        y = point.y * self.scale
-        z = point.z * self.scale
+        scale = 5
+        x = point.x * scale
+        y = point.y * scale
+        z = point.z * scale
         
         # Generate noise value in the range [-1, 1]
         noise_value = self.noise_generator.noise(x, y, z)
@@ -137,12 +141,12 @@ class wood_texture(Texture):
         self.noise_generator = ValueNoise3D(grid_size=32)
         self.colour1 = colour1
         self.colour2 = colour2
-        self.scale = 10
+        
         
     def get_colour(self, point):
-        
-        noise_value = self.noise_generator.noise(point.x * self.scale, point.y * self.scale, point.z * self.scale)
-        grain = 0.5 * (1 + math.sin((point.x + point.y + point.z) * self.scale + noise_value * 10))
+        scale = 10
+        noise_value = self.noise_generator.noise(point.x * scale, point.y * scale, point.z * scale)
+        grain = 0.5 * (1 + math.sin((point.x + point.y + point.z) * scale + noise_value * 10))
 
         return colour(
             (1 - grain) * self.colour1.x + grain * self.colour2.x,
@@ -155,16 +159,16 @@ class marble_texture(Texture):
         self.noise_generator = ValueNoise3D(grid_size=32)
         self.colour1 = colour1
         self.colour2 = colour2
-        self.scale = 1
+        
         
     def get_colour(self, point):
         
         turbulence = 0.0
-        scale = self.scale
+        scale = 1
         for i in range(5):
             turbulence += abs(self.noise_generator.noise(point.x * scale, point.y * scale, point.z * scale)) / scale
             scale *= 2
-        t = 0.5 * (1 + math.sin(point.x * self.scale + turbulence * 5))
+        t = 0.5 * (1 + math.sin(point.x * scale + turbulence * 5))
         return colour(
             (1 - t) * self.colour1.x + t * self.colour2.x,
             (1 - t) * self.colour1.y + t * self.colour2.y,
@@ -176,11 +180,11 @@ class smoke_texture(Texture):
         self.noise_generator = ValueNoise3D(grid_size=32)
         self.colour1 = colour1
         self.colour2 = colour2
-        self.scale = 5
+        
         
     def get_colour(self, point):
-        
-        noise_value = self.noise_generator.noise(point.x * self.scale, point.y * self.scale, point.z * self.scale)
+        scale = 5
+        noise_value = self.noise_generator.noise(point.x * scale, point.y * scale, point.z * scale)
         t = (noise_value + 1) / 2
         t = max(0, min(1, t))
         return colour(
@@ -188,3 +192,99 @@ class smoke_texture(Texture):
             (1 - t) * self.colour1.y + t * self.colour2.y,
             (1 - t) * self.colour1.z + t * self.colour2.z
         )
+    
+class stripes_texture(Texture):
+    def __init__(self, colour1=colour(1, 1, 1), colour2=colour(0, 0, 0)):
+        self.colour1 = colour1
+        self.colour2 = colour2
+    
+    def get_colour(self, point):
+        scale = 10  # Adjust this value to change the stripe width
+        coord = point.x 
+        if int(math.floor(coord * scale)) % 2 == 0:
+            return self.colour1
+        else:
+            return self.colour2
+        
+class radial_texture(Texture):
+    def __init__(self, colour1=colour(1, 1, 1), colour2=colour(0, 0, 0)):
+        self.colour1 = colour1
+        self.colour2 = colour2
+        
+   
+
+    def get_colour(self, point):
+        center = Vector(0,0,0)
+        scale = 1
+        center_to_point = point - center
+        dist = center_to_point.mag() * scale
+        
+        # Normalize the distance to [0, 1]
+        t = min(1, max(0, dist))
+        return colour(
+            (1 - t) * self.colour1.x + t * self.colour2.x,
+            (1 - t) * self.colour1.y + t * self.colour2.y,
+            (1 - t) * self.colour1.z + t * self.colour2.z
+        )
+    
+
+class brick_texture(Texture):
+    def __init__(self, brick_colour=colour(0.7, 0.2, 0.1), mortar_colour=colour(0.85, 0.85, 0.85), ):
+        self.colour1 = brick_colour # Brick colour
+        self.colour2 = mortar_colour
+
+    def get_colour(self, point):
+        brick_width = 1
+        brick_height = 0.5
+        mortar_thickness = 0.05
+        
+        x = point.x
+        y = point.y
+
+        # Determine the current row and column
+        row = math.floor(y / self.brick_height)
+        offset = 0.5 * self.brick_width if row % 2 == 1 else 0  # Stagger every other row
+
+        col = math.floor((x + offset) / brick_width)
+
+        # Local position inside the brick
+        local_x = (x + offset) % brick_width
+        local_y = y % brick_height
+
+        # If near the edge, it's mortar
+        if (local_x < mortar_thickness or local_y < mortar_thickness or 
+            local_x > brick_width - mortar_thickness or 
+            local_y > brick_height - mortar_thickness):
+            return self.colour2  # Mortar colour
+        else:
+            return self.colour1  # Brick colour
+        
+
+
+class image_texture(Texture):
+    def __init__(self, image_path):
+        self.image = self.load_image(image_path)
+        self.width, self.height = self.image.size
+        self.pixels = self.image.load()
+
+    def load_image(self, image_path):
+        # Load and convert image to RGB
+        return Image.open(image_path).convert("RGB")
+
+    def get_colour(self, point):
+        # Map point coordinates to [0,1] UV space
+        # You can adapt this projection based on your scene layout
+        u = (point.x % 1 + 1) % 1  # Wrap around
+        v = (point.y % 1 + 1) % 1
+
+        # Flip v because image Y-axis is top-down
+        v = 1 - v
+
+        # Convert UV to image coordinates
+        x_pixel = int(u * (self.width - 1))
+        y_pixel = int(v * (self.height - 1))
+
+        r, g, b = self.pixels[x_pixel, y_pixel]
+
+        # Normalize RGB to [0,1]
+        return colour(r / 255, g / 255, b / 255)

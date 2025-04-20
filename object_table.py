@@ -39,25 +39,34 @@ def get_object_data(obj):
     if abc != None:
         abc = abc.values()
     
-    colour = (obj.colour)
-    if colour != None:
-        colour = colour.values()
+    colour = colour_to_list(obj.colour)
     
+    def colour_to_list(colour):
+        if colour != None:
+            colour = colour.values()
+
+
+
+
     object_rotation = getattr(obj, 'rotation', None)
     if object_rotation != None:
         object_rotation = object_rotation.values()
     
     if obj.material.texture != None:
         texture = obj.material.texture.__class__.__name__
+        texture_colour1 = colour_to_list(obj.material.texture.colour1)
+        texture_colour2 = colour_to_list(obj.material.texture.colour2)
     else:
         texture = None
+
+    
 
     object_data = {
         "type" : obj.__class__.__name__,
         "center": center,       
         "tip": tip,       
         "abc": abc,
-        "allignment": getattr(obj, 'allignment', None),   #allignment is a typo in the original code
+        "allignment": getattr(obj, 'allignment', None), 
         "axis": axis,    
         "angle": getattr(obj, 'angle', None),    
         "height": getattr(obj, 'height', None),
@@ -66,6 +75,8 @@ def get_object_data(obj):
         "colour": colour,    
         "material": (obj.material).values(),
         "texture": texture,
+        "texture_colour1": texture_colour1,
+        "texture_colour2": texture_colour2,
     }
     return object_data
 
