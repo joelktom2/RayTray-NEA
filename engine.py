@@ -77,30 +77,27 @@ class engine:
     
     def colour_at(self,scene,nearest,i_p):
         
+        
         base_colour = nearest.material.get_colour(i_p)
+        f_colour = colour(0,0,0)
+
 
         
         
         normal = nearest.get_normal(i_p)   #noraml to get_normal
         normal = normal.norm()
-        light = scene.lights[0]
         camera = scene.camera
-        light_intensity = light.intensity_at_point(i_p)
-        #light_dir = (i_p - light.position).norm()
-        light_dir = (light.position - i_p).norm()
+        for light in scene.lights:   #loops through all the lights in the scene 
+
+            light_intensity = light.intensity_at_point(i_p)
+            light_dir = (light.position - i_p).norm()
+            intesity = engine.Blinn_Phong(light_intensity,normal,i_p,light_dir,nearest,camera)
+            f_colour  +=  base_colour * intesity
         
-        ##print(f"light dir : {light_dir}")
-        ##print(normal)
-        
-        intesity = engine.Blinn_Phong(light_intensity,normal,i_p,light_dir,nearest,camera)
-        colour  =  base_colour * intesity
-        
-        return colour     #returns the colour of the object at the point of intersection
+        return f_colour     #returns the colour of the object at the point of intersection
     
     def lamb(light_intensity,normal,light_dir,diffuse):
-        #print(f"base : {base_colour}")
-        #print(f"i : {light.intensity_at_point(i_p)}")
-        #print(f"max : {max(0,(light_dir).dp(normal))}")
+        
         return diffuse * light_intensity * max(0,(light_dir).dp(normal)) #returns the lambertian shading of the object
     
     def specular(light_intensity,normal,halfway,specular):
@@ -108,7 +105,7 @@ class engine:
     
     
     def ambient(light_intesity,ambient):
-        return ambient * light_intesity + 0.05
+        return ambient * 0.4 * light_intesity + 0.05
 
     def Blinn_Phong(light_intensity,normal,i_p,light_dir,nearest,camera):
         specular = nearest.material.specular
@@ -152,15 +149,26 @@ class engine:
         if object_hit == None or intersect_point == None:
             return fcolour
         
-        
+        def clamp_colour(col):
+            return colour(
+                min(max(col.x, 0), 1),
+                min(max(col.y, 0), 1),
+                min(max(col.z, 0), 1)
+            ) 
                 
         fcolour += self.colour_at(scene,object_hit,intersect_point) # returns the colour of the object at the point of intersection
         
         if object_hit.material.reflectivity > 0 and depth < MAX_DEPTH:
             depth += 1
-            reflected_ray = self.reflect(ray,object_hit.get_normal(intersect_point),intersect_point)
+            object_normal = object_hit.get_normal(intersect_point) #normal at the point of intersection
+            reflected_ray_origin = intersect_point + object_normal * 0.00001 #origin of the reflected ray is set to the point of intersection + epsilon to avoid self intersection
+            reflected_ray = self.reflect(ray, object_normal, reflected_ray_origin)
+
             fcolour += self.ray_trace(reflected_ray,scene,depth+1) * (object_hit.material.reflectivity)
+            
+            # reflection_color = self.ray_trace(reflected_ray,scene,depth+1) * (object_hit.material.reflectivity)
+            # fcolour = fcolour * (1 - object_hit.material.reflectivity) + reflection_color 
                 
-        return fcolour
+        return clamp_colour(fcolour)
         
         

@@ -242,10 +242,10 @@ class brick_texture(Texture):
         y = point.y
 
         # Determine the current row and column
-        row = math.floor(y / self.brick_height)
-        offset = 0.5 * self.brick_width if row % 2 == 1 else 0  # Stagger every other row
+        row = math.floor(y / brick_height)
+        offset = 0.5 * brick_width if row % 2 == 1 else 0  # Stagger every other row
 
-        col = math.floor((x + offset) / brick_width)
+        
 
         # Local position inside the brick
         local_x = (x + offset) % brick_width

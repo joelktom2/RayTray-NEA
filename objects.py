@@ -70,7 +70,7 @@ class Sphere(Shape):
         
 class Floor(Sphere):
     def __init__(self,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
-        super().__init__(Vector(0,-10000,1), 10000, colour, mat, texture)
+        super().__init__(Vector(0,1,-10002), 10000, colour, mat, texture)
     
 
 class Cone(Shape):
@@ -411,6 +411,7 @@ class Triangle(Shape):
         edge1 = self.v1 - self.v0
         edge2 = self.v2 - self.v0
         return (edge1.cp(edge2)).norm()
+    
     def contains(self, point):
         # Same as barycentric check, but built into the Triangle
         epsilon=1e-6

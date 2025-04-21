@@ -17,7 +17,7 @@ from flet import FilePicker, FilePickerResultEvent
 from PIL import Image
 import numpy as np
 import re
-from time import sleep
+import time
 import os
 import shutil
 import win32clipboard
@@ -25,6 +25,7 @@ import io
 from datetime import datetime
 import copy
 import threading
+
 
 
 def main(page):
@@ -255,7 +256,9 @@ def main(page):
             return False
         
         def validlength(value:str) -> bool:
-            if re.fullmatch(r'\d+', value):
+            value = str(value)
+
+            if re.fullmatch(r'\d+(\.\d+)?', value):
                 return True
             return False
         
@@ -460,6 +463,14 @@ def main(page):
             if validate_inputs_for_Sphere() == False:
                 return False
             return True
+        
+        def validate_inputs_for_Array():
+            if validlength(number.text_field.value) == False:
+                obj_error_message.value = "Please enter a valid number of objects"
+                obj_error_message.visible = True
+                page.update()
+                return False
+            return True
 
         
         def string_coords_to_Vector(value:str) -> object:
@@ -548,6 +559,7 @@ def main(page):
                 "Capsule": validate_inputs_for_Capsule,
                 "Floor": validate_inputs_for_Floor,
                 "Tetrahedron": validate_inputs_for_Tetrahedron,
+                "Array": validate_inputs_for_Array,
 
             }
             validator = validation_functions.get(object_type.value)
@@ -576,17 +588,23 @@ def main(page):
                 else:
                     object_texture = image_texture(selected_image_texture_file_path.value)
             else:
-                texture_class_name = texture_type.value.lower()+"_texture"
+                texture_class_name = texture_type.value.lower() + "_texture"
+                texture_class = globals().get(texture_class_name)
+                if texture_class == None:
+                    raise ValueError(f"Texture class {texture_class_name} not found")
+
                 if texture_colour1 != None and texture_colour2 != None:       #user chose optional colours
                     object_texture = globals()[texture_class_name](colour.hex_to_rgb(texture_colour1),colour.hex_to_rgb(texture_colour2))
                 else:
-                    object_texture = globals()[texture_class_name]      #user did not choose optional colours 
+                    print("user did not choose optional colours")
+                    object_texture = globals()[texture_class_name]()     #user did not choose optional colours 
+                       
             return object_texture
         
         def add_to_added_objects(myobj1):
             added_objects.controls.append(
                     ft.Row(
-                        [(ft.Text(f"Type: {object_type.value} Position: {object_position.value}, Color: {selected_color} , Texture: {texture_type.value}")),
+                        [(ft.Text(f"Type: {myobj1.__class__.__name__} , Color: {selected_color} , Texture: {myobj1.material.texture.__class__.__name__}")),
                          Remove_ButtonLite(text="Remove", on_click=lambda e: remove_object(e, myobj1)),
                          Remove_ButtonLite(text="Save Object", on_click=lambda e: save_custom_object(e, myobj1)) ,
                          ft.IconButton(icon=ft.icons.CONTENT_COPY_OUTLINED, icon_color=ft.colors.GREEN_800, on_click=lambda e: duplicate_object(e, myobj1))] , 
@@ -595,7 +613,10 @@ def main(page):
                 
                 )
 
-        
+
+
+
+
         def add_object(e):   #adds an object to the scene
             
             if object_type.value == None:
@@ -679,13 +700,26 @@ def main(page):
                             rotation.y = float(math.radians(rotation.y))
                             rotation.z = float(math.radians(rotation.z))
                         myobj1 = Cube(position,side_length,rotation,obj_colour,obj_material,object_texture)
+                    elif object_type.value == "Array":
+                        
+                        
+                        build_array(int(float(number.text_field.value)))
+                        added_objects.controls.append(ft.Text(f"Array of {number.text_field.value} objects added"))
+                        page.update()
+                        return
+                        
 
                     else:   #sphere and tetrahedron
                         position = string_coords_to_Vector(object_position.value)      
                         myobj1 = globals()[object_type.value](position, float(object_radius.value),obj_colour,obj_material,object_texture)
                 
+                
+                
+                
                 scene_objects.append(myobj1)
                 add_to_added_objects(myobj1)
+                
+                    
                 page.update()
 
         def remove_object(e, object):  #removes object from the scene
@@ -693,6 +727,29 @@ def main(page):
             scene_objects.pop(onum)
             added_objects.controls.pop(onum)
             page.update()
+
+
+        def build_array(obj_num):
+            
+            
+            
+            array_objects = []
+            position = Vector(-8,5,5)
+            for i in range(obj_num):
+                if position.x == 8:
+                    position.z -= 1
+                    position.x = -8
+                if obj_num > 0: 
+                    position.x += 1
+                obj_position = Vector(position.x, position.y, position.z)
+                obj = Sphere(obj_position, 0.5,colour(1,0,0))
+                array_objects.append(obj)
+
+            
+            
+            scene_objects.extend(array_objects)
+            
+            
 
         def duplicate_object(e, object):  #duplicates object in the scene
             
@@ -827,7 +884,11 @@ def main(page):
                 "Plastic": [0.6,0.2,0.2,0.0],
                 "Matte" : [0.8,0.1,0.1,0.0],
                 "Glossy" : [0.8,0.5,0.1,0.3],
-                
+                "Metal": [0.2, 0.9, 0.1, 0.8],
+                "Mirror": [0.0, 1.0, 0.0, 1.0],
+                "Glass": [0.1, 0.6, 0.1, 0.9],  # Not refractive yet, but reflectivity mimics gloss
+                "Rubber": [0.9, 0.1, 0.1, 0.05],
+                "Ceramic": [0.7, 0.3, 0.2, 0.2],
 
                 }
             
@@ -983,6 +1044,8 @@ def main(page):
 
             scene_error_message.visible = False
             pb.visible = True
+            est_time.value = "Estimated Time: 0s"
+            est_time.visible = True
             pb.value = 0
             page.update()  
 
@@ -993,8 +1056,18 @@ def main(page):
                 user_scene = Scene(scene_objects, scene_camera, scene_width, scene_height, lights)
 
                 Engine = engine()
-
+                start_time = time.time()
+                
                 def progress_callback(progress):
+                    elapsed = time.time() - start_time
+
+                    if progress > 0:
+                        estimated_total_time = elapsed / progress
+                        time_left = estimated_total_time - elapsed
+                        est_time.value = f"Estimated Time Left: {int(time_left)}s"
+                    else:
+                        est_time.value = "Estimating..."
+
                     pb.value = progress
                     page.update()
 
@@ -1018,6 +1091,7 @@ def main(page):
                 page.controls.insert(0, img_tile)
                 img.visible = True
                 pb.visible = False
+                est_time.visible = False
                 pb.value = 0
                 page.update()
 
@@ -1053,7 +1127,7 @@ def main(page):
             
             for i in range(0, 101):    #loading a progress bar not accurate of the rendering speed but for decoration
                 pb.value = i * 0.02
-                sleep(0.01) 
+                
                 page.update()
             
             
@@ -1067,14 +1141,14 @@ def main(page):
             page.update()
 
         
-        def testy(e):  #on click method for the Autofill Button used to fill example test values for scene
+        def autofill(e):  #on click method for the Autofill Button used to fill example test values for scene
             render_name.value = "Testy"
             light_pos.value = "0,0,0"
-            cam_pos.value = "0,0,-1"
+            cam_pos.value = "0,-1,0"
             width_input.value = "300"
             height_input.value = "200"
-            object_position.value = "0,0,5"
-            object_radius.value = "0.5"
+            object_position.value = "0,5,0"
+            object_radius.value = "1.0"
             page.update()
 
                 
@@ -1179,6 +1253,12 @@ def main(page):
         def add_floor_ui(e):
             remove_ui()
             page.update()
+
+        def add_Array_ui(e):
+            remove_ui()
+
+            number.visible = True
+            page.update()
         
         
         def add_Sphere_ui(e):
@@ -1264,7 +1344,8 @@ def main(page):
 
     
         
-
+        number = IntField("Number of objects",1,1000,1,1)
+        number.visible = False
         render_name = ft.TextField(label="Render Name",hint_text="e.g., My_Render", width=600,border_color=ft.colors.GREEN_800)
         light_pos = ft.TextField(label="Light Source Postion",hint_text="e.g. x, y, z", width=325,border_color=ft.colors.GREEN_800)
         brightness_slider = ft.Slider(min=0,value = 1, max=1, divisions=10,round=1,label="Brightness: {value}",width=400)
@@ -1299,6 +1380,7 @@ def main(page):
                      ft.dropdown.Option("Cube",on_click= add_Cube_ui),
                      ft.dropdown.Option("Tetrahedron",on_click= add_Sphere_ui),
                     ft.dropdown.Option("Capsule",on_click= add_Cylinder_ui),
+                    ft.dropdown.Option("Array",on_click= add_Array_ui),
 
                      ],
             width=150,
@@ -1307,7 +1389,8 @@ def main(page):
 
         load_custom_objects_to_ui()
    
-        
+        est_time = ft.Text("Estimated Time: ")
+        est_time.visible = False
         pb = ft.ProgressBar(width=400)
         pb.visible = False
         set = MyButton(text="Set", on_click=set_name)
@@ -1358,7 +1441,11 @@ def main(page):
             options=[(ft.dropdown.Option("Plastic",on_click= lambda e: add_material("Plastic",False) ) ) , 
                     (ft.dropdown.Option("Matte",on_click= lambda e: add_material("Matte",False) ) ),
                     (ft.dropdown.Option("Glossy",on_click= lambda e: add_material("Glossy",False) ) ),
-                     
+                    (ft.dropdown.Option("Metal",on_click= lambda e: add_material("Metal",False) ) ),
+                    (ft.dropdown.Option("Mirror",on_click= lambda e: add_material("Mirror",False) ) ),
+                    (ft.dropdown.Option("Glass",on_click= lambda e: add_material("Glass",False) ) ),
+                    (ft.dropdown.Option("Rubber",on_click= lambda e: add_material("Rubber",False) ) ),
+                    (ft.dropdown.Option("Ceramic",on_click= lambda e: add_material("Ceramic",False) ) ), 
                     (ft.dropdown.Option("Custom", on_click= add_material_tile)),
                     (ft.dropdown.Option("None", on_click= remove_material_tile))],
             width=150,
@@ -1681,6 +1768,7 @@ def main(page):
         object_tile = ft.Row(
             [
                 object_type,
+                number,
                 object_position,
                 object_abc,
                 cylinder_allignment,
@@ -1706,6 +1794,7 @@ def main(page):
         page.add(
             
             pb,
+            est_time,
             theme_switch_button,
             ft.Column(
                 [
@@ -1741,7 +1830,7 @@ def main(page):
                     ft.Row([R_Button(text="Render", on_click=render)], alignment=ft.MainAxisAlignment.CENTER),
                     scene_error_message,
                     ft.Row([Sign_out_Button,R_Button(text="Test Render", on_click=test_render),My_Renders_Button], alignment=ft.MainAxisAlignment.CENTER),
-                    ft.Row([R_Button(text="Auto Fill", on_click=testy)], alignment=ft.MainAxisAlignment.CENTER),
+                    ft.Row([R_Button(text="Auto Fill", on_click=autofill)], alignment=ft.MainAxisAlignment.CENTER),
                     
                 
                 ],

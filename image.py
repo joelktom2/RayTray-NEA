@@ -15,6 +15,7 @@ class colour(Vector): #inherits from Vector class , x,y,z maps to the r,g,b valu
         return colour(r, g, b)
     
     def rgb_to_hex(self):         # converts rgb colour to hex colour
+        
         return '#{:02x}{:02x}{:02x}'.format(int(self.x*255), int(self.y*255), int(self.z*255))
     
     

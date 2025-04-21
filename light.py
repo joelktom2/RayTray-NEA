@@ -6,7 +6,7 @@ class light():
         self.position = position
         self.colour = colour
         self.intesity = brightness
-        self.on = False
+        
     
     def intensity_at_point(self,point):
         d = (point - self.position).mag()
