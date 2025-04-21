@@ -1,3 +1,6 @@
+from Maths import Vector
+
+
 class Scene():
     def __init__(self,objects,camera,width,height,lights):
         self.objects = objects       # list of objects in the scene
@@ -17,3 +20,4 @@ class camera():
 
     def __str__(self):
         return "Camera at position: " + str(self.position)
+    

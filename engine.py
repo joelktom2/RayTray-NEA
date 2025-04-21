@@ -9,7 +9,7 @@ BG_COLOR = colour(0,0,0) #default background colour : black
 class engine:
     
 
-    def render(self,scene):
+    def render(self,scene,progress_callback=None):
     
         width = scene.width
         height = scene.height        
@@ -27,16 +27,26 @@ class engine:
         xstep = (x_max - x_min) / (width - 1)
         ystep = (y_max - y_min) / (height - 1)
 
-        #lines 13 -19 are used to avoid image distortion by keeping the aspect ratio of the image constant
+        #Above lines are used to avoid image distortion by keeping the aspect ratio of the image constant
         camera = scene.camera
         pixels = Image(width, height)
         #loop through each pixel in the image and traces a ray through it
+        
         for j in range(height):
-            y = y_min + j * ystep  #y coord
+            y = y_max - j * ystep  #y coord
             for i in range(width):
                 x = x_min + i * xstep #x coord
-                ray = Ray(camera.position, (Vector(x, y, 0)- camera.position).norm())       #essentiall produces a ray in the direction of the pixels
+                # Ray production , # camera dierection is set to positive z axis
+                
+                camera_direction = Vector(0,1,0) + Vector(1,0,0) * x + Vector(0,0,1) * y #camera direction is set to the forward vector of the camera
+                
+                camera_direction = camera_direction.norm() #normalize the direction vector
+                
+                ray = Ray(camera.position, camera_direction)   
+                
                 pixels.set_pixel(i, j, (self.ray_trace(ray,scene)))
+            if progress_callback:
+                progress_callback((j+1 )/ height)    #for progress bar in UI
         
         return pixels
     
@@ -98,7 +108,7 @@ class engine:
     
     
     def ambient(light_intesity,ambient):
-        return ambient * light_intesity
+        return ambient * light_intesity + 0.05
 
     def Blinn_Phong(light_intensity,normal,i_p,light_dir,nearest,camera):
         specular = nearest.material.specular

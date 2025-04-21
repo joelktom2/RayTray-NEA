@@ -178,8 +178,8 @@ class marble_texture(Texture):
 class smoke_texture(Texture):
     def __init__(self, colour1=colour(1, 1, 1), colour2=colour(0.8, 0.8, 0.8)):
         self.noise_generator = ValueNoise3D(grid_size=32)
-        self.colour1 = colour1
-        self.colour2 = colour2
+        self.colour1 = colour(1, 1, 1)
+        self.colour2 = colour(0.8, 0.8, 0.8)
         
         
     def get_colour(self, point):

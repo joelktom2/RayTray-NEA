@@ -70,7 +70,7 @@ class Sphere(Shape):
         
 class Floor(Sphere):
     def __init__(self,colour=colour(0,0,0),mat = [0.5,0.5,0.0,0.0],texture = None):
-        super().__init__(Vector(0,10000.5,1), 10000, colour, mat, texture)
+        super().__init__(Vector(0,-10000,1), 10000, colour, mat, texture)
     
 
 class Cone(Shape):
@@ -131,7 +131,7 @@ class Cone(Shape):
             if t < 0:
                 return False
             point = ray.point(t)
-            h = abs((point - self.tip).dp(V))
+            h = (point - self.tip).dp(V)
             if self.height:
                 h_max = self.height 
                 return h >= 0 and h <= h_max
@@ -206,30 +206,24 @@ class Cylinder(Shape):
 
 
         def intersects_cap():
+            caps = []
             if abs(ray.direction.dp(self.axis)) < 1e-6:
-                return None
-            top_cap = self.center + self.axis * (self.height / 2)
-            bottom_cap = self.center + self.axis*(self.height / 2)
-            top = ((top_cap - ray.origin).dp(self.axis)) / ray.direction.dp(self.axis)
-            bottom = ((bottom_cap - ray.origin).dp(self.axis)) / ray.direction.dp(self.axis)
-            if top and bottom:
-                t_cap = min(top, bottom)
-                point_cap = ray.point(t_cap)
-                if ((point_cap - top_cap).mag())**2 <= self.radius ** 2:
-                    return t_cap
-                
-            elif top:
-                t_cap = top
-                point_cap = ray.point(t_cap)
-                if ((point_cap - top_cap).mag())**2 <= self.radius ** 2:
-                    return t_cap
-
-            elif bottom:
-                t_cap = bottom
-                point_cap = ray.point(t_cap)
-                if (point_cap - bottom_cap).mag2() <= self.radius ** 2:
-                    return t_cap
-            return None
+                return []
+            
+            for sign in [-1, 1]:  # bottom and top
+                cap_center = self.center + self.axis * (sign * self.height / 2)
+                denom = ray.direction.dp(self.axis)
+                if abs(denom) < 1e-6:
+                    continue
+                t = (cap_center - ray.origin).dp(self.axis) / denom
+                if t < 0:
+                    continue
+                point = ray.point(t)
+                # Project onto cap's plane
+                dist = (point - cap_center - self.axis * ((point - cap_center).dp(self.axis))).mag()
+                if dist <= self.radius:
+                    caps.append(t)
+            return caps
         
         
         def is_valid(t):
@@ -241,10 +235,9 @@ class Cylinder(Shape):
             height_projection = (point - self.center).dp(self.axis)
             return abs(height_projection) <= (self.height/2) 
         
-        intersections = [t for t in (t1, t2) if is_valid(t)]
-        t3 = intersects_cap()
-        if t3:
-            intersections.append(t3)
+        cap_ts = intersects_cap()
+        intersections = [t for t in (t1, t2) if is_valid(t)] + cap_ts
+
         return ray.point(min(intersections)) if intersections else None
 
 

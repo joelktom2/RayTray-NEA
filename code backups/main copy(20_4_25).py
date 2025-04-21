@@ -24,7 +24,6 @@ import win32clipboard
 import io
 from datetime import datetime
 import copy
-import threading
 
 
 def main(page):
@@ -192,8 +191,6 @@ def main(page):
             height=300,
             fit=ft.ImageFit.CONTAIN,
             visible=False,  # Hide the image initially
-            
-            
         )
 
 
@@ -270,19 +267,9 @@ def main(page):
 
 
     
-        def check_if_cam_light_overlap():
-            if cam_pos.value != None and light_pos.value != None and cam_pos.value == light_pos.value :
-                cam_error_message.value = "Camera and Light cannot be in the same position"
-                cam_error_message.visible = True
-                page.update()
-                return False
-            return True
+        
         
         def add_light(e):    # adds a light source to the scene 
-            
-            
-            if not(check_if_cam_light_overlap()):
-                return
             
             if validcoord(light_pos.value):
                 light_error_message.visible = False
@@ -319,9 +306,6 @@ def main(page):
         
         def add_cam(e): # adds a camera to the scene
             
-            if not(check_if_cam_light_overlap()):
-                return
-
             if validcoord(cam_pos.value):
                 if added_cam.controls != []:
                     cam_error_message.value = "Only one camera is allowed"
@@ -955,74 +939,74 @@ def main(page):
                 return True
         
         
-        
-        
-        def render(e):
+        def render(e):   #renders the scene
             print(f"the top control is {page.controls[0]} ")
-
+            
             if img.src:
                 page.controls.pop(0)
                 img.src = None
-
+            
             img.src = None
-            page.update()  # clear the image preview first
+
+            page.update()
 
             global scene_name
             print(f"the scene name is {scene_name}")
-            if scene_name is None:
+            
+            if scene_name == None:
                 scene_name = "image"
 
             timestamp = datetime.today().strftime('%Y-%m-%d_%H_%M_%S')
-            scene_name_png = scene_name + timestamp + ".png"
-            scene_name_ppm = scene_name + timestamp + ".ppm"
 
+            scene_name_png = scene_name + timestamp + ".png"
+            scene_name_ppm = scene_name + timestamp +".ppm"
+            
             current_name.value = f"Current Name: {scene_name}"
 
-            if final_validation() is False:
-                return
-
-            scene_error_message.visible = False
-            pb.visible = True
-            pb.value = 0
-            page.update()  
-
-            
-            def do_render():
+            if final_validation() == False:
+                pass
+            else:
+                scene_error_message.visible = False
+                pb.visible = True
+                pb.value = 0
+                
                 scene_width = int(width_input.value)
                 scene_height = int(height_input.value)
-                user_scene = Scene(scene_objects, scene_camera, scene_width, scene_height, lights)
-
+                user_scene = Scene(scene_objects,scene_camera,scene_width,scene_height,lights)  
+                
                 Engine = engine()
-
-                def progress_callback(progress):
-                    pb.value = progress
-                    page.update()
-
-                image = Engine.render(user_scene, progress_callback=progress_callback)
-
+                image = Engine.render(user_scene)
+                
                 with open(scene_name_ppm, "w") as img_file:
                     image.write_ppm(img_file)
 
                 convert_ppm_to_png(scene_name_ppm, scene_name_png)
-                os.remove(scene_name_ppm)
+                
+                os.remove(scene_name_ppm)   #deletes the ppm file after conversion
 
                 if User_Status:
-                    target_path = f"User_Data/{get_user_id(username.value)}/{scene_name_png}"
-                    os.rename(scene_name_png, target_path)
-                    img.src = target_path
+                    os.rename(scene_name_png, f"User_Data/{get_user_id(username.value)}/{scene_name_png}")
+                    img.src = f"User_Data/{get_user_id(username.value)}/{scene_name_png}"
                 else:
                     img.src = scene_name_png
+        
 
-
+                page.update()
+                
+                
+                for i in range(0, 101):    #loading a progress bar not accurate of the rendering speed but for decoration
+                    pb.value = i * 0.02
+                    sleep(0.01)
+                    page.update()
+                  
                 img_viewer.content = img
                 page.controls.insert(0, img_tile)
                 img.visible = True
+                page.update()
+
                 pb.visible = False
                 pb.value = 0
                 page.update()
-
-            
-            threading.Thread(target=do_render, daemon=True).start()
 
 
                 
@@ -1648,18 +1632,13 @@ def main(page):
             
         
         
-        
-        
-        img_viewer= ft.InteractiveViewer(
+        img_viewer = ft.InteractiveViewer(
             min_scale=0.1,
             max_scale=15,
             boundary_margin=ft.margin.all(20),
             content=img,
-            )
-        
+        )
 
-        
-        
         img_tile = ft.Row(
             [img_viewer, 
             
@@ -1672,8 +1651,7 @@ def main(page):
             
             ],
             alignment=ft.MainAxisAlignment.CENTER,
-            )
-            
+        )
         
         stopper = ft.Text("Stopper")
         stopper.visible = False
