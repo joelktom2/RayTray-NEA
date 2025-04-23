@@ -478,17 +478,17 @@ class Tetrahedron(Shape):
         ]
 
     def intersects(self, ray):
-        intersections = [face.intersects(ray) for face in self.faces]
+        intersections = [face.intersects(ray) for face in self.faces] #Triangle intersection operation
         intersections = [p for p in intersections if p is not None]
         if intersections:
             return min(intersections, key=lambda p: (p - ray.origin).mag())
         return None
     
     def get_normal(self,point):
-        # You might want to find which face the point lies on and return that normal.
+        
         for face in self.faces:
-            if face.contains(point):  # You'd implement this in Triangle
-                return face.get_normal()
+            if face.contains(point):  
+                return face.get_normal() # Triangle normal operation
         return None
     
 

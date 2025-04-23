@@ -734,14 +734,17 @@ def main(page):
             
             
             array_objects = []
-            position = Vector(-8,5,5)
+            position = Vector(-30,5,21)
+            
+            initial = position.x
             for i in range(obj_num):
-                if position.x == 8:
-                    position.z -= 1
-                    position.x = -8
-                if obj_num > 0: 
+                if i > 0: 
                     position.x += 1
+                if position.x == -initial:
+                    position.z -= 1
+                    position.x = initial
                 obj_position = Vector(position.x, position.y, position.z)
+                
                 obj = Sphere(obj_position, 0.5,colour(1,0,0))
                 array_objects.append(obj)
 
@@ -873,12 +876,10 @@ def main(page):
                 
 
         
-        def add_material(material,colour_check): 
+        def add_material(material): 
             material_tile.visible = False
             
-            material_colour = {
-
-            }
+         
             
             material_coeffs = {
                 "Plastic": [0.6,0.2,0.2,0.0],
@@ -898,10 +899,8 @@ def main(page):
             Ambient_input.text_field.value = str(material_coeffs[material][2])
             reflectivity_input.text_field.value = str(material_coeffs[material][3])
             
-            if colour_check:
-                colour_button.visible = False
-                global selected_color
-                selected_color = material_colour[material]
+           
+                
             
             
             page.update()
@@ -1438,14 +1437,14 @@ def main(page):
         
         material_type = ft.Dropdown(
             label= "Material Type",
-            options=[(ft.dropdown.Option("Plastic",on_click= lambda e: add_material("Plastic",False) ) ) , 
-                    (ft.dropdown.Option("Matte",on_click= lambda e: add_material("Matte",False) ) ),
-                    (ft.dropdown.Option("Glossy",on_click= lambda e: add_material("Glossy",False) ) ),
-                    (ft.dropdown.Option("Metal",on_click= lambda e: add_material("Metal",False) ) ),
-                    (ft.dropdown.Option("Mirror",on_click= lambda e: add_material("Mirror",False) ) ),
-                    (ft.dropdown.Option("Glass",on_click= lambda e: add_material("Glass",False) ) ),
-                    (ft.dropdown.Option("Rubber",on_click= lambda e: add_material("Rubber",False) ) ),
-                    (ft.dropdown.Option("Ceramic",on_click= lambda e: add_material("Ceramic",False) ) ), 
+            options=[(ft.dropdown.Option("Plastic",on_click= lambda e: add_material("Plastic") ) ) , 
+                    (ft.dropdown.Option("Matte",on_click= lambda e: add_material("Matte") ) ),
+                    (ft.dropdown.Option("Glossy",on_click= lambda e: add_material("Glossy") ) ),
+                    (ft.dropdown.Option("Metal",on_click= lambda e: add_material("Metal") ) ),
+                    (ft.dropdown.Option("Mirror",on_click= lambda e: add_material("Mirror") ) ),
+                    (ft.dropdown.Option("Glass",on_click= lambda e: add_material("Glass") ) ),
+                    (ft.dropdown.Option("Rubber",on_click= lambda e: add_material("Rubber") ) ),
+                    (ft.dropdown.Option("Ceramic",on_click= lambda e: add_material("Ceramic") ) ), 
                     (ft.dropdown.Option("Custom", on_click= add_material_tile)),
                     (ft.dropdown.Option("None", on_click= remove_material_tile))],
             width=150,

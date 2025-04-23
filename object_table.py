@@ -46,8 +46,6 @@ def get_object_data(obj):
             colour = colour.values()
 
 
-
-
     object_rotation = getattr(obj, 'rotation', None)
     if object_rotation != None:
         object_rotation = object_rotation.values()
