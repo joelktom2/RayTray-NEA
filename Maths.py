@@ -227,11 +227,4 @@ class Ray():
 
 
 
-def refract(n1, n2, normal, incident):   #random 
-
-
-
-    incident_angle = incident.angle(normal)
-    refracted_angle = math.asin((n1*math.sin(incident_angle))/n2) #applies snell's law
-    return refracted_angle 
 

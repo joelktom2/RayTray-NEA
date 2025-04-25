@@ -194,7 +194,7 @@ class smoke_texture(Texture):
         )
     
 class stripes_texture(Texture):
-    def __init__(self, colour1=colour(1, 1, 1), colour2=colour(0, 0, 0)):
+    def __init__(self, colour1=colour(1, 0, 0), colour2=colour(0, 0, 1)):
         self.colour1 = colour1
         self.colour2 = colour2
     

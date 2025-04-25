@@ -487,7 +487,8 @@ def main(page):
             try:
                 return colour(list[0],list[1],list[2])
             except:
-                raise ValueError("Invalid colour data")
+                return None
+                
         
         def list_to_to_Vector(list):
             return Vector(list[0],list[1],list[2])
@@ -558,32 +559,33 @@ def main(page):
             if obj_data["type"] == "Floor":
                 myobj1 = Floor(obj_colour,obj_material,texture)
             elif obj_data["type"] == "Sphere":
-                position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
+                position = list_to_to_Vector(obj_data["center"])
                 radius = float(obj_data["radius"])
                 myobj1 = Sphere(position, radius,obj_colour,obj_material,texture)
             elif obj_data["type"] == "Tetrahedron":
-                position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
+                position = list_to_to_Vector(obj_data["center"])
                 side_length = float(obj_data["radius"])
                 myobj1 = Tetrahedron(position,side_length,obj_colour,obj_material,texture)
             elif obj_data["type"] == "Cone":
-                tip = Vector(obj_data["tip"][0],obj_data["tip"][1],obj_data["tip"][2])
-                axis = Vector(obj_data["axis"][0],obj_data["axis"][1],obj_data["axis"][2])
+    
+                tip = list_to_to_Vector(obj_data["tip"])
+                axis = list_to_to_Vector(obj_data["axis"])
                 angle = float(obj_data["angle"])
                 height = float(obj_data["height"])
                 myobj1 = Cone(tip,axis,angle,height,obj_colour,obj_material,texture)
             elif obj_data["type"] == "Ellipsoid":
-                position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
-                abc = Vector(obj_data["abc"][0],obj_data["abc"][1],obj_data["abc"][2])
+                position = list_to_to_Vector(obj_data["center"])
+                abc = list_to_to_Vector(obj_data["abc"])
                 myobj1 = Ellipsoid(position, abc,obj_colour,obj_material,texture)
             elif obj_data["type"] == "Cylinder":
-                position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
+                position = list_to_to_Vector(obj_data["center"])
                 radius = float(obj_data["radius"])
                 height = float(obj_data["height"])
                 allignment = obj_data["allignment"]
                 myobj1 = Cylinder(position,allignment,height,radius,obj_colour,obj_material,texture)
                 
             elif obj_data["type"] == "Capsule":
-                position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
+                position = list_to_to_Vector(obj_data["center"])
                 radius = float(obj_data["radius"])
                 height = float(obj_data["height"])
                 allignment = obj_data["allignment"]
@@ -591,9 +593,9 @@ def main(page):
                 
  
             elif obj_data["type"] == "Cube":
-                position = Vector(obj_data["center"][0],obj_data["center"][1],obj_data["center"][2])
+                position = list_to_to_Vector(obj_data["center"])
                 side_length = float(obj_data["radius"])
-                object_rotation = Vector(obj_data["rotation"][0],obj_data["rotation"][1],obj_data["rotation"][2])
+                object_rotation = list_to_to_Vector(obj_data["object_rotation"])
                 myobj1 = Cube(position,side_length,object_rotation,obj_colour,obj_material,texture)
             
             return myobj1
@@ -614,6 +616,8 @@ def main(page):
             return True
 
         def validate_object():
+            if object_type.value.startswith("Custom"):
+                return True
             validation_functions = {
                 "Sphere": validate_inputs_for_Sphere,
                 "Cube": validate_inputs_for_Cube,
@@ -740,7 +744,7 @@ def main(page):
                         height = float(object_radius.value)
                         if cylinder_allignment.value == "Horizontal(X)":
                             myobj1 = Cylinder(position,"x",height,radius,obj_colour,obj_material,object_texture)
-                        elif cylinder_allignment.value == "Vertical(y)":
+                        elif cylinder_allignment.value == "Forward(y)":
                             myobj1 = Cylinder(position,"y",height,radius,obj_colour,obj_material,object_texture)
                         else:
                             myobj1 = Cylinder(position,"z",height,radius,obj_colour,obj_material,object_texture)
@@ -751,7 +755,7 @@ def main(page):
                         height = float(object_radius.value)
                         if cylinder_allignment.value == "Horizontal(X)":
                             myobj1 = Capsule(position,"x",height,radius,obj_colour,obj_material,object_texture)
-                        elif cylinder_allignment.value == "Vertical(y)":
+                        elif cylinder_allignment.value == "Forward(y)":
                             myobj1 = Capsule(position,"y",height,radius,obj_colour,obj_material,object_texture)
                         else:
                             myobj1 = Capsule(position,"z",height,radius,obj_colour,obj_material,object_texture)
@@ -1240,6 +1244,8 @@ def main(page):
         def sign_out(e):
             global User_Status
             User_Status = None
+            global saved_scene_data
+            saved_scene_data = None
             page.controls.clear()
             username.value = ""
             password.value = ""
@@ -1268,7 +1274,8 @@ def main(page):
         
         def my_renders(e):
             page.controls.clear()
-            
+            global page_tracker
+            page_tracker = "my_renders"
             scenes = get_scenes(get_user_id(username.value))  
             scenes = scenes[-1::-1]     #stack
 
@@ -1482,8 +1489,8 @@ def main(page):
         cylinder_allignment = ft.Dropdown(
             label="Cylinder Allignment",
             options=[ft.dropdown.Option("Horizontal(X)"),
-                     ft.dropdown.Option("Vertical(y)"),
-                     ft.dropdown.Option("Depth(z)"),
+                     ft.dropdown.Option("Forward(y)"),
+                     ft.dropdown.Option("Vertical(z)"),
                      ],
             width=150,
             border_color= ft.colors.GREEN_800,
@@ -1775,14 +1782,15 @@ def main(page):
         def img_showcaser(e):
             page.controls.clear()
             global page_tracker
-            page_tracker = "showcaser"
+            print(f"the page tracker is {page_tracker}")
             print("the image is ",img.src)
-            if User_Status:
+            
+            if User_Status and page_tracker == "my_renders":
                 page.add(
                     theme_switch_button,
                     img_viewer,
                     ft.Row([
-                        ft.IconButton(icon=ft.icons.ADD ,tooltip= "add to library", on_click=img_to_library),
+                        
                         ft.IconButton(icon=ft.icons.DOWNLOAD ,tooltip= "download", on_click=lambda e: download_file(img.src)),
                         ft.IconButton(icon=ft.icons.DELETE ,tooltip= "delete", on_click=remove_img),
                         ft.IconButton(icon=ft.icons.CONTENT_COPY ,tooltip= "Copy", on_click= lambda e: copy_image_to_clipboard(img.src)),
@@ -1796,6 +1804,25 @@ def main(page):
 
                 )
                 page.update()
+                
+           
+            elif User_Status:
+                page.add(
+                    theme_switch_button,
+                    img_viewer,
+                    ft.Row([
+                        ft.IconButton(icon=ft.icons.ADD ,tooltip= "add to library", on_click=img_to_library),
+                        ft.IconButton(icon=ft.icons.DOWNLOAD ,tooltip= "download", on_click=lambda e: download_file(img.src)),
+                        ft.IconButton(icon=ft.icons.DELETE ,tooltip= "delete", on_click=remove_img),
+                        ft.IconButton(icon=ft.icons.CONTENT_COPY ,tooltip= "Copy", on_click= lambda e: copy_image_to_clipboard(img.src)),],
+                        
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    ),
+                    main_menu_Button,
+                    Sign_out_Button,
+                )
+                page.update()           
+           
             else:
                 page.add(
                     theme_switch_button,
@@ -1803,14 +1830,18 @@ def main(page):
                     ft.Row([
                         ft.IconButton(icon=ft.icons.DOWNLOAD ,tooltip= "download", on_click=lambda e: download_file(img.src)),
                         ft.IconButton(icon=ft.icons.CONTENT_COPY ,tooltip= "Copy", on_click= lambda e: copy_image_to_clipboard(img.src)),
-                        ft.IconButton(icon=ft.icons.DELETE ,tooltip= "delete", on_click=remove_img),],    
+                        ft.IconButton(icon=ft.icons.DELETE ,tooltip= "delete", on_click=remove_img), ],
+                    
                     alignment=ft.MainAxisAlignment.CENTER,
                     ),
+                    main_menu_Button,
                     Sign_out_Button,
                 )
                 page.update()
             
-        
+            
+            page_tracker = "showcaser"
+            
         
         
         

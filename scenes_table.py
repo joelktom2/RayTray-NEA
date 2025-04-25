@@ -47,8 +47,6 @@ def get_scene_data(scene):
 def create_scene(user_id, image_path,img_Name,scene_data):
     # Convert scene data to JSON
     scene_data = json.dumps(scene_data)
-    
-
     connection = sqlite3.connect('data.db')
     cursor = connection.cursor()
     cursor.execute("INSERT INTO Scenes (UserID, ImagePath, Scene_Name,Scene_Data) VALUES (?, ?, ?, ?)", (user_id, image_path, img_Name, scene_data))
@@ -63,14 +61,6 @@ def get_scenes(user_id):
     connection.close()
     return result
 
-
-def add_img(user_id,img):
-    image_path = os.path.abspath(img)
-    connection = sqlite3.connect('data.db')
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO Scenes (UserID, ImagePath) VALUES (?, ?)", (user_id, image_path))
-    connection.commit()
-    connection.close()
 
 def get_scene_names(user_id):
     connection = sqlite3.connect('data.db')

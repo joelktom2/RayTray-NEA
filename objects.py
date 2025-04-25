@@ -178,11 +178,31 @@ class Cylinder(Shape):
 
     def __str__(self):
         return f"Center: {self.center}, Radius: {self.abc}, Colour: {self.colour} texture : {self.material.texture}"
+    
+    def check_cap(self,point): # checks if a point is lying on one of the faces of the cylinder
+        
+        for sign in [-1, 1]:  
+                
+            point_to_center = point - self.center
+            distance = point_to_center.dp(self.axis)
+            zero = abs(distance) - self.height/2
+            if abs(zero) < 1e-6:  
+                #checks if point lies by comparing the perpendicular distance along axis 
+                #with half the height of the cylinder
+                return sign
+
+        return None
 
     def get_normal(self, point):
-        return Vector((point.x - self.center.x) / self.abc.x**2,
-                      (point.y - self.center.y) / self.abc.y**2,
-                      (point.z - self.center.z) / self.abc.z**2).norm()
+        cap_sign = self.check_cap(point)
+        if cap_sign != None:
+            return self.axis *cap_sign
+        else:
+        
+            return Vector((point.x - self.center.x) / self.abc.x**2,  #gradient function/ method used for ellipsoid
+                        (point.y - self.center.y) / self.abc.y**2,    #cylinder is just a special case of ellipsoid
+                        (point.z - self.center.z) / self.abc.z**2).norm()
+
     
     def intersects(self, ray):
         l = ray.origin - self.center
@@ -221,7 +241,8 @@ class Cylinder(Shape):
                 point = ray.point(t)
                 # Project onto cap's plane
                 dist = (point - cap_center - self.axis * ((point - cap_center).dp(self.axis))).mag()
-                if dist <= self.radius:
+                
+                if dist <= self.radius+1e-6:
                     caps.append(t)
             return caps
         
@@ -236,6 +257,8 @@ class Cylinder(Shape):
             return abs(height_projection) <= (self.height/2) 
         
         cap_ts = intersects_cap()
+        if cap_ts != []:
+            print(cap_ts)
         intersections = [t for t in (t1, t2) if is_valid(t)] + cap_ts
 
         return ray.point(min(intersections)) if intersections else None
@@ -293,7 +316,7 @@ class Cube(Shape):
     def __init__(self, center, side_length, rotation=Vector(0, 0, 0), colour=colour(0, 0, 0), mat=[0.5, 0.5, 0.0, 0.0], texture=None):
         super().__init__(colour, mat, texture)
         self.center = center
-        self.side_length = side_length
+        self.radius = side_length
 
 
         # Build rotation matrix
