@@ -6,7 +6,7 @@ from engine import engine
 from scene import Scene,camera
 from light import light
 from loginsys import create_user,login_user,get_user_id
-from scenes_table import create_scene,get_scenes,remove_scene
+from scenes_table import create_scene,get_scenes,remove_scene,get_scene_data,get_scene_data_from_db
 from object_table import save_object,load_objects,load_object,get_obj_id
 from textures import *
 
@@ -27,6 +27,7 @@ import copy
 import threading
 
 
+saved_scene_data = None
 
 def main(page):
     page.title = "RayTray"
@@ -209,10 +210,7 @@ def main(page):
                 self.text = text
                 self.on_click = on_click
                 self.visible = True        
-                
-        
-        
-        
+                 
         class MyButton(ft.ElevatedButton):
             def __init__(self, text, on_click):
                 super().__init__()
@@ -270,7 +268,18 @@ def main(page):
         lights = []
         global scene_name
         scene_name = None
+        
+        
+       
+        
+        
+        
+        
+        
 
+        
+        
+        
 
     
         def check_if_cam_light_overlap():
@@ -414,11 +423,7 @@ def main(page):
                 obj_error_message.visible = True
                 page.update()
                 return False
-            elif colour_button.visible == True and selected_color == None:
-                obj_error_message.value = "Please select a color"
-                obj_error_message.visible = True
-                page.update()
-                return False
+           
             return True
         
         def validate_inputs_for_Cylinder():
@@ -479,7 +484,63 @@ def main(page):
             return Vector(x, y, z)
         
         def get_colour(list) -> object:
-            return colour(list[0],list[1],list[2])
+            try:
+                return colour(list[0],list[1],list[2])
+            except:
+                raise ValueError("Invalid colour data")
+        
+        def list_to_to_Vector(list):
+            return Vector(list[0],list[1],list[2])
+        
+        
+        def update_dimensions(e):   #updates the dimensions of the scene dynamically 
+            current_width.value = f"Current Width: {width_input.value}"
+            current_height.value = f"Current Height: {height_input.value}"
+            page.update()
+        
+        
+        width_input = ft.TextField(label = "Width",hint_text="e.g., 300", width=200, on_change=update_dimensions,border_color=ft.colors.GREEN_800)
+        height_input = ft.TextField(label = "height",hint_text="e.g., 200", width=200, on_change=update_dimensions,border_color=ft.colors.GREEN_800)
+        
+    
+        def build_scene(scene_data):
+            print("Building scene")
+            width_input.value = int(scene_data["width"])
+
+            height_input.value = int(scene_data["height"])
+
+
+            for obj in scene_data["lights"]:
+                
+                lights.append( light( list_to_to_Vector(obj["position"]) ) )
+                added_lights.controls.append(
+                    ft.Row(
+                        [(ft.Text(f"Position: {obj['position']} Brightness: {obj['brightness']}")),Remove_ButtonLite(text="Remove", on_click=lambda e: remove_light(e, lights[-1]))] , alignment=ft.MainAxisAlignment.CENTER
+                        
+                    ),
+                )
+            
+            camera_position = scene_data["camera_position"]    
+            camera_fov = scene_data["camera_fov"]    
+            global scene_camera
+            scene_camera = camera(list_to_to_Vector(camera_position),int(camera_fov))
+            
+            added_cam.controls.append(
+                ft.Row(
+                    [(ft.Text(f"Position: {camera_position} FOV: {camera_fov}")),Remove_ButtonLite(text="Remove", on_click=lambda e: remove_cam(e, scene_camera))] , alignment=ft.MainAxisAlignment.CENTER
+                    
+                ),
+            )
+            
+            for obj in scene_data["objects"]:
+                
+                myobj1 = build_custom_object(obj)
+                scene_objects.append(myobj1)
+                add_to_added_objects(myobj1)
+            
+            page.update()
+
+       
         
         def build_custom_object(obj_data:dict) -> object:
             
@@ -491,6 +552,7 @@ def main(page):
                 texture = None
             
             obj_material = [float(obj_data["material"][0]),float(obj_data["material"][1]),float(obj_data["material"][2]),float(obj_data["material"][3])] 
+            print(obj_data["colour"])
             obj_colour = get_colour(obj_data["colour"])
             
             if obj_data["type"] == "Floor":
@@ -535,6 +597,8 @@ def main(page):
                 myobj1 = Cube(position,side_length,object_rotation,obj_colour,obj_material,texture)
             
             return myobj1
+        
+
 
         def validate_input_for_double_colour():
             if texture_colour1 == None and texture_colour2 != None:
@@ -604,7 +668,7 @@ def main(page):
         def add_to_added_objects(myobj1):
             added_objects.controls.append(
                     ft.Row(
-                        [(ft.Text(f"Type: {myobj1.__class__.__name__} , Color: {selected_color} , Texture: {myobj1.material.texture.__class__.__name__}")),
+                        [(ft.Text(f"Type: {myobj1.__class__.__name__} , Texture: {myobj1.material.texture.__class__.__name__}")),
                          Remove_ButtonLite(text="Remove", on_click=lambda e: remove_object(e, myobj1)),
                          Remove_ButtonLite(text="Save Object", on_click=lambda e: save_custom_object(e, myobj1)) ,
                          ft.IconButton(icon=ft.icons.CONTENT_COPY_OUTLINED, icon_color=ft.colors.GREEN_800, on_click=lambda e: duplicate_object(e, myobj1))] , 
@@ -614,7 +678,10 @@ def main(page):
                 )
 
 
-
+        if saved_scene_data != None:
+            print("Loading scene data")
+            build_scene(saved_scene_data)
+            page.update()
 
 
         def add_object(e):   #adds an object to the scene
@@ -806,10 +873,7 @@ def main(page):
 
 
 
-        def update_dimensions(e):   #updates the dimensions of the scene dynamically 
-            current_width.value = f"Current Width: {width_input.value}"
-            current_height.value = f"Current Height: {height_input.value}"
-            page.update()
+
         
 
         
@@ -1052,6 +1116,7 @@ def main(page):
             def do_render():
                 scene_width = int(width_input.value)
                 scene_height = int(height_input.value)
+                global user_scene
                 user_scene = Scene(scene_objects, scene_camera, scene_width, scene_height, lights)
 
                 Engine = engine()
@@ -1198,6 +1263,7 @@ def main(page):
             img.src = src
             img_viewer.content = img
             img.visible = True
+            
             img_showcaser(e)
         
         def my_renders(e):
@@ -1362,8 +1428,7 @@ def main(page):
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             spacing=1,
         )
-        width_input = ft.TextField(label = "Width",hint_text="e.g., 300", width=200, on_change=update_dimensions,border_color=ft.colors.GREEN_800)
-        height_input = ft.TextField(label = "height",hint_text="e.g., 200", width=200, on_change=update_dimensions,border_color=ft.colors.GREEN_800)
+
 
         current_width = ft.Text("Current Width: ")
         current_height = ft.Text("Current Height: ")
@@ -1392,7 +1457,9 @@ def main(page):
         est_time.visible = False
         pb = ft.ProgressBar(width=400)
         pb.visible = False
+        
         set = MyButton(text="Set", on_click=set_name)
+        
         object_position = ft.TextField(label="Object Position", hint_text="e.g., (x, y, z)", width=150,border_color=ft.colors.GREEN_800)
         object_radius = ft.TextField(label="Object Radius", hint_text="e.g., 0.5", width=150,border_color=ft.colors.GREEN_800)
         object_rotation = ft.TextField(label="Object Rotation", hint_text="e.g., (0, 45, 0) in degrees", width=150,border_color=ft.colors.GREEN_800)
@@ -1403,13 +1470,13 @@ def main(page):
         cone_angle.visible = False
         object_rotation.visible = False
 
-
         object_abc = ft.Row(
             [
             IntField("X radius",0,100,1,1),
             IntField("Y radius",0,100,1,1),
             IntField("Z radius",0,100,1,1),]
         )
+        
         object_abc.visible = False
 
         cylinder_allignment = ft.Dropdown(
@@ -1426,14 +1493,10 @@ def main(page):
         cylinder_radius.visible = False
         cylinder_allignment.visible = False
 
-
-
-
         Ambient_input = IntField("Ambient",0,1)
         Diffuse_input = IntField("Diffuse",0,1,0.5)
         Specular_input = IntField("Specular",0,1,0.5)
         reflectivity_input = IntField("Reflectivity",0,1)
-        
         
         material_type = ft.Dropdown(
             label= "Material Type",
@@ -1645,16 +1708,30 @@ def main(page):
         def img_to_library(e):
             
             
-            
+            scene_data = get_scene_data(user_scene)
             userID = get_user_id(username.value)
             
-            create_scene(userID,img.src,scene_name)
+            create_scene(userID,img.src,scene_name,scene_data)
 
             page.add(ft.Text(f"{scene_name} added to library"))
             page.update()
             
 
-        
+
+        def reload_scene(img_path):
+            
+            global saved_scene_data
+            saved_scene_data = get_scene_data_from_db(img_path)
+            print(f"the saved scene data is {saved_scene_data}")
+            
+            switch_to_main_ui(e)
+
+            
+
+            
+            
+            
+
 
         def download_file(file_path):
     
@@ -1708,7 +1785,8 @@ def main(page):
                         ft.IconButton(icon=ft.icons.ADD ,tooltip= "add to library", on_click=img_to_library),
                         ft.IconButton(icon=ft.icons.DOWNLOAD ,tooltip= "download", on_click=lambda e: download_file(img.src)),
                         ft.IconButton(icon=ft.icons.DELETE ,tooltip= "delete", on_click=remove_img),
-                        ft.IconButton(icon=ft.icons.CONTENT_COPY ,tooltip= "Copy", on_click= lambda e: copy_image_to_clipboard(img.src)),],    
+                        ft.IconButton(icon=ft.icons.CONTENT_COPY ,tooltip= "Copy", on_click= lambda e: copy_image_to_clipboard(img.src)),
+                        ft.IconButton(icon=ft.icons.BUILD ,tooltip= "Modify Scene", on_click=lambda e : reload_scene(img.src)),],    
                     alignment=ft.MainAxisAlignment.CENTER,
                     ),
                     
